@@ -99,21 +99,98 @@
 
                 @auth
                     @if($product->isInStock())
-                    <form action="{{ route('cart.store') }}" method="POST" class="mb-4">
+                    <form action="{{ route('cart.store') }}" method="POST" class="mb-4" id="addToCartForm">
                         @csrf
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
-                        <div class="row g-3 mb-4">
-                            <div class="col-auto">
-                                <label class="form-label fw-semibold">Số lượng</label>
-                                <div class="input-group" style="width: 150px;">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="decreaseQuantity()">-</button>
-                                    <input type="number" name="quantity" id="quantity" class="form-control text-center" value="1" min="1" max="{{ $product->stock_quantity }}" readonly>
-                                    <button class="btn btn-outline-secondary" type="button" onclick="increaseQuantity()">+</button>
+                        <input type="hidden" name="variant_id" id="selected_variant_id" value="">
+
+                        @if($product->hasVariants())
+                        <!-- Variant Selection -->
+                        <div class="mb-4">
+                            @php
+                                $variantGroups = [];
+                                foreach ($product->variants as $variant) {
+                                    if ($variant->attributes) {
+                                        foreach ($variant->attributes as $attrName => $attrValue) {
+                                            if (!isset($variantGroups[$attrName])) {
+                                                $variantGroups[$attrName] = [];
+                                            }
+                                            if (!in_array($attrValue, $variantGroups[$attrName])) {
+                                                $variantGroups[$attrName][] = $attrValue;
+                                            }
+                                        }
+                                    }
+                                }
+                            @endphp
+
+                            @foreach($variantGroups as $attrName => $attrValues)
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold mb-2">
+                                    <i class="bi bi-tag me-1"></i>{{ $attrName }} *
+                                </label>
+                                <div class="variant-options d-flex flex-wrap gap-2">
+                                    @foreach($attrValues as $attrValue)
+                                    <button type="button" 
+                                            class="variant-option-btn btn btn-outline-secondary"
+                                            data-attribute="{{ $attrName }}"
+                                            data-value="{{ $attrValue }}"
+                                            onclick="selectVariantOption('{{ $attrName }}', '{{ $attrValue }}', this)">
+                                        {{ $attrValue }}
+                                    </button>
+                                    @endforeach
                                 </div>
+                                <input type="hidden" name="selected_attributes[{{ $attrName }}]" id="attr_{{ str_replace(' ', '_', $attrName) }}" value="">
+                            </div>
+                            @endforeach
+
+                            <div id="selectedVariantInfo" class="alert alert-info d-none mb-3">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <span id="selectedVariantText"></span>
                             </div>
                         </div>
+                        @endif
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold mb-3">
+                                <i class="bi bi-123 me-1"></i>Số lượng
+                            </label>
+                            <div class="quantity-selector">
+                                <button class="quantity-btn quantity-btn-minus" type="button" onclick="decreaseQuantity()" id="decreaseBtn">
+                                    <i class="bi bi-dash-lg"></i>
+                                </button>
+                                <input type="number" 
+                                       name="quantity" 
+                                       id="quantity" 
+                                       class="quantity-input" 
+                                       value="1" 
+                                       min="1" 
+                                       max="{{ $product->stock_quantity }}" 
+                                       readonly>
+                                <button class="quantity-btn quantity-btn-plus" type="button" onclick="increaseQuantity()" id="increaseBtn">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted d-block mt-2">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <span id="stockInfo">Tối đa: {{ $product->stock_quantity }} sản phẩm</span>
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Giá:</span>
+                                <strong class="text-danger fs-4" id="variantPrice">
+                                    @if($product->hasVariants())
+                                        {{ number_format($product->min_price) }}đ - {{ number_format($product->max_price) }}đ
+                                    @else
+                                        {{ number_format($product->final_price) }}đ
+                                    @endif
+                                </strong>
+                            </div>
+                        </div>
+
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                            <button type="submit" class="btn btn-primary btn-lg" id="addToCartBtn">
                                 <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ hàng
                             </button>
                         </div>
@@ -200,18 +277,51 @@
         const input = document.getElementById('quantity');
         const max = parseInt(input.getAttribute('max'));
         const current = parseInt(input.value);
+        const decreaseBtn = document.getElementById('decreaseBtn');
+        const increaseBtn = document.getElementById('increaseBtn');
+        
         if (current < max) {
             input.value = current + 1;
+            decreaseBtn.disabled = false;
+        }
+        
+        if (parseInt(input.value) >= max) {
+            increaseBtn.disabled = true;
         }
     }
 
     function decreaseQuantity() {
         const input = document.getElementById('quantity');
         const current = parseInt(input.value);
+        const decreaseBtn = document.getElementById('decreaseBtn');
+        const increaseBtn = document.getElementById('increaseBtn');
+        
         if (current > 1) {
             input.value = current - 1;
+            increaseBtn.disabled = false;
+        }
+        
+        if (parseInt(input.value) <= 1) {
+            decreaseBtn.disabled = true;
         }
     }
+
+    // Initialize button states on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('quantity');
+        const decreaseBtn = document.getElementById('decreaseBtn');
+        const increaseBtn = document.getElementById('increaseBtn');
+        const max = parseInt(input.getAttribute('max'));
+        const current = parseInt(input.value);
+        
+        if (current <= 1) {
+            decreaseBtn.disabled = true;
+        }
+        
+        if (current >= max) {
+            increaseBtn.disabled = true;
+        }
+    });
 </script>
 @endpush
 @endsection

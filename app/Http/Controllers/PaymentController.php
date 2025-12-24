@@ -28,7 +28,7 @@ class PaymentController extends Controller
         $vnp_TmnCode = config('services.vnpay.tmn_code');
         $vnp_HashSecret = config('services.vnpay.hash_secret');
         $vnp_Url = config('services.vnpay.url');
-        $vnp_ReturnUrl = config('services.vnpay.return_url');
+        $vnp_ReturnUrl = config('services.vnpay.return_url', route('payment.return'));
 
         $vnp_TxnRef = $order->order_number . '_' . time();
         $vnp_OrderInfo = 'Thanh toan don hang ' . $order->order_number;
@@ -113,7 +113,12 @@ class PaymentController extends Controller
             $orderNumber = explode('_', $inputData['vnp_TxnRef'])[0];
             $order = Order::where('order_number', $orderNumber)->first();
 
-            if ($order && $inputData['vnp_ResponseCode'] == '00') {
+            if (!$order) {
+                return redirect()->route('home')
+                    ->with('error', 'Không tìm thấy đơn hàng.');
+            }
+
+            if ($inputData['vnp_ResponseCode'] == '00') {
                 // Thanh toán thành công
                 $order->update([
                     'payment_status' => Order::PAYMENT_STATUS_PAID,
@@ -121,26 +126,48 @@ class PaymentController extends Controller
                     'status' => Order::STATUS_PROCESSING,
                 ]);
 
-                Payment::create([
-                    'order_id' => $order->id,
-                    'payment_method' => 'VNPAY',
-                    'amount' => $order->total_amount,
-                    'status' => Payment::STATUS_SUCCESS,
-                    'transaction_id' => $inputData['vnp_TransactionNo'],
-                    'vnpay_response_code' => $inputData['vnp_ResponseCode'],
-                    'vnpay_transaction_no' => $inputData['vnp_TransactionNo'],
-                    'vnpay_response_data' => $inputData,
-                ]);
+                // Kiểm tra xem đã có payment record chưa
+                $existingPayment = Payment::where('order_id', $order->id)->first();
+                
+                if (!$existingPayment) {
+                    Payment::create([
+                        'order_id' => $order->id,
+                        'payment_method' => 'VNPAY',
+                        'amount' => $order->total_amount,
+                        'status' => Payment::STATUS_SUCCESS,
+                        'transaction_id' => $inputData['vnp_TransactionNo'],
+                        'vnpay_response_code' => $inputData['vnp_ResponseCode'],
+                        'vnpay_transaction_no' => $inputData['vnp_TransactionNo'],
+                        'vnpay_response_data' => $inputData,
+                    ]);
+                } else {
+                    $existingPayment->update([
+                        'status' => Payment::STATUS_SUCCESS,
+                        'transaction_id' => $inputData['vnp_TransactionNo'],
+                        'vnpay_response_code' => $inputData['vnp_ResponseCode'],
+                        'vnpay_transaction_no' => $inputData['vnp_TransactionNo'],
+                        'vnpay_response_data' => $inputData,
+                    ]);
+                }
 
-                return redirect()->route('orders.show', $order->id)
-                    ->with('success', 'Thanh toán thành công!');
+                // Nếu user đã đăng nhập, redirect đến trang đơn hàng
+                if (Auth::check() && Auth::id() == $order->user_id) {
+                    return redirect()->route('orders.show', $order->id)
+                        ->with('success', 'Thanh toán thành công!');
+                }
+
+                // Nếu chưa đăng nhập, redirect đến login với thông báo
+                return redirect()->route('login')
+                    ->with('success', 'Thanh toán thành công! Vui lòng đăng nhập để xem đơn hàng.');
             } else {
                 // Thanh toán thất bại
-                if ($order) {
-                    $order->update([
-                        'payment_status' => Order::PAYMENT_STATUS_FAILED,
-                    ]);
+                $order->update([
+                    'payment_status' => Order::PAYMENT_STATUS_FAILED,
+                ]);
 
+                $existingPayment = Payment::where('order_id', $order->id)->first();
+                
+                if (!$existingPayment) {
                     Payment::create([
                         'order_id' => $order->id,
                         'payment_method' => 'VNPAY',
@@ -149,14 +176,25 @@ class PaymentController extends Controller
                         'vnpay_response_code' => $inputData['vnp_ResponseCode'] ?? '99',
                         'vnpay_response_data' => $inputData,
                     ]);
+                } else {
+                    $existingPayment->update([
+                        'status' => Payment::STATUS_FAILED,
+                        'vnpay_response_code' => $inputData['vnp_ResponseCode'] ?? '99',
+                        'vnpay_response_data' => $inputData,
+                    ]);
                 }
 
-                return redirect()->route('orders.index')
-                    ->with('error', 'Thanh toán thất bại. Vui lòng thử lại.');
+                if (Auth::check() && Auth::id() == $order->user_id) {
+                    return redirect()->route('orders.index')
+                        ->with('error', 'Thanh toán thất bại. Vui lòng thử lại.');
+                }
+
+                return redirect()->route('login')
+                    ->with('error', 'Thanh toán thất bại. Vui lòng đăng nhập để xem chi tiết.');
             }
         } else {
-            return redirect()->route('orders.index')
-                ->with('error', 'Chữ ký không hợp lệ');
+            return redirect()->route('home')
+                ->with('error', 'Chữ ký không hợp lệ. Vui lòng liên hệ hỗ trợ.');
         }
     }
 }

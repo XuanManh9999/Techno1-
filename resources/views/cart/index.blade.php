@@ -17,75 +17,93 @@
     <div class="col-lg-8">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white">
-                <h5 class="mb-0">
-                    <i class="bi bi-bag me-2"></i>Sản phẩm trong giỏ hàng ({{ $cartItems->count() }})
+                <h5 class="mb-0 d-flex align-items-center justify-content-between">
+                    <span>
+                        <i class="bi bi-bag me-2"></i>Sản phẩm trong giỏ hàng
+                    </span>
+                    <span class="badge bg-primary rounded-pill">{{ $cartItems->count() }}</span>
                 </h5>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover mb-0 align-middle">
                         <thead>
                             <tr>
-                                <th style="width: 50%;">Sản phẩm</th>
-                                <th class="text-center">Giá</th>
-                                <th class="text-center">Số lượng</th>
-                                <th class="text-center">Thành tiền</th>
-                                <th class="text-center">Thao tác</th>
+                                <th style="width: 45%;">Sản phẩm</th>
+                                <th class="text-center" style="width: 15%;">Giá</th>
+                                <th class="text-center" style="width: 20%;">Số lượng</th>
+                                <th class="text-center" style="width: 15%;">Thành tiền</th>
+                                <th class="text-center" style="width: 5%;">Xóa</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($cartItems as $item)
                             <tr>
                                 <td>
-                                    <div class="d-flex align-items-center p-3">
-                                        <div class="img-zoom me-3" style="width: 100px; height: 100px; border-radius: var(--radius-sm); overflow: hidden;">
-                                            <img src="{{ $item->product->image ?? 'https://via.placeholder.com/100' }}" 
-                                                 alt="{{ $item->product->name }}" 
+                                    <div class="d-flex align-items-center">
+                                        <div class="img-zoom me-3" style="width: 90px; height: 90px; border-radius: var(--radius-sm); overflow: hidden;">
+                                            <img src="{{ $item->product_image ?? $item->product->image ?? 'https://via.placeholder.com/120' }}" 
+                                                 alt="{{ $item->product_name }}" 
                                                  class="w-100 h-100" 
                                                  style="object-fit: cover;">
                                         </div>
-                                        <div>
-                                            <h6 class="mb-1 fw-semibold">{{ $item->product->name }}</h6>
-                                            <small class="text-muted d-block">
-                                                <i class="bi bi-upc-scan me-1"></i>SKU: {{ $item->product->sku }}
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 fw-semibold text-truncate">
+                                                {{ $item->product_name }}
+                                            </h6>
+                                            @if($item->variant)
+                                            <small class="text-info d-block mb-1">
+                                                <i class="bi bi-tag me-1"></i>{{ $item->variant->attributes_string }}
                                             </small>
-                                            @if($item->product->sale_price)
-                                                <small class="text-muted">
-                                                    <span class="text-decoration-line-through">{{ number_format($item->product->price) }}đ</span>
-                                                    <span class="text-danger ms-1">{{ number_format($item->product->sale_price) }}đ</span>
-                                                </small>
                                             @endif
+                                            <small class="text-muted d-block mb-1">
+                                                <i class="bi bi-upc-scan me-1"></i>SKU: {{ $item->variant ? $item->variant->sku : $item->product->sku }}
+                                            </small>
+                                            <small class="text-danger fw-semibold">
+                                                {{ number_format($item->product_price) }}đ
+                                            </small>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="align-middle text-center">
+                                <td class="text-center">
                                     <strong class="text-danger">{{ number_format($item->product->final_price) }}đ</strong>
                                 </td>
-                                <td class="align-middle">
-                                    <form action="{{ route('cart.update', $item->id) }}" method="POST" class="d-flex justify-content-center">
+                                <td class="text-center">
+                                    <form action="{{ route('cart.update', $item->id) }}" method="POST" class="d-inline-block">
                                         @csrf
                                         @method('PUT')
-                                        <div class="input-group" style="width: 120px;">
-                                            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="this.parentElement.querySelector('input').stepDown(); this.form.submit();">-</button>
-                                            <input type="number" name="quantity" value="{{ $item->quantity }}" 
-                                                   min="1" max="{{ $item->product->stock_quantity }}" 
-                                                   class="form-control form-control-sm text-center" 
+                                        <div class="quantity-selector quantity-selector-sm">
+                                            <button class="quantity-btn quantity-btn-minus" 
+                                                    type="button" 
+                                                    onclick="this.parentElement.querySelector('input').stepDown(); this.form.submit();">
+                                                <i class="bi bi-dash-lg"></i>
+                                            </button>
+                                            <input type="number" 
+                                                   name="quantity" 
+                                                   value="{{ $item->quantity }}" 
+                                                   min="1" 
+                                                   max="{{ $item->product->stock_quantity }}" 
+                                                   class="quantity-input" 
                                                    onchange="this.form.submit()">
-                                            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="this.parentElement.querySelector('input').stepUp(); this.form.submit();">+</button>
+                                            <button class="quantity-btn quantity-btn-plus" 
+                                                    type="button" 
+                                                    onclick="this.parentElement.querySelector('input').stepUp(); this.form.submit();">
+                                                <i class="bi bi-plus-lg"></i>
+                                            </button>
                                         </div>
                                     </form>
                                 </td>
-                                <td class="align-middle text-center">
+                                <td class="text-center">
                                     <strong class="text-danger fs-5">{{ number_format($item->subtotal) }}đ</strong>
                                 </td>
-                                <td class="align-middle text-center">
+                                <td class="text-center">
                                     <form action="{{ route('cart.destroy', $item->id) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" 
-                                                class="btn btn-danger btn-sm" 
+                                                class="btn btn-outline-danger btn-sm btn-icon-only" 
                                                 onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?');"
-                                                title="Xóa">
+                                                title="Xóa sản phẩm">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
@@ -100,27 +118,29 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="card shadow-lg border-0 sticky-top" style="top: 100px;">
+        <div class="card shadow-lg border-0 sticky-top order-summary-card" style="top: 100px;">
             <div class="card-header bg-gradient text-white">
                 <h5 class="mb-0">
                     <i class="bi bi-receipt me-2"></i>Tổng kết đơn hàng
                 </h5>
             </div>
             <div class="card-body">
-                <div class="d-flex justify-content-between mb-3">
-                    <span class="text-muted">Tạm tính:</span>
-                    <strong>{{ number_format($total) }}đ</strong>
+                <div class="summary-item">
+                    <span class="summary-label">Tạm tính:</span>
+                    <span class="summary-value">{{ number_format($total) }}đ</span>
                 </div>
-                <div class="d-flex justify-content-between mb-3">
-                    <span class="text-muted">Phí vận chuyển:</span>
-                    <strong class="text-success">Miễn phí</strong>
+                <div class="summary-item">
+                    <span class="summary-label">Phí vận chuyển:</span>
+                    <span class="summary-value text-success">
+                        <i class="bi bi-check-circle me-1"></i>Miễn phí
+                    </span>
                 </div>
-                <hr>
-                <div class="d-flex justify-content-between mb-4">
-                    <span class="fw-bold fs-5">Tổng cộng:</span>
-                    <strong class="text-danger fs-4">{{ number_format($total) }}đ</strong>
+                <hr class="my-3">
+                <div class="summary-item summary-total">
+                    <span class="summary-label">Tổng cộng:</span>
+                    <span class="summary-value text-danger">{{ number_format($total) }}đ</span>
                 </div>
-                <div class="d-grid gap-2">
+                <div class="d-grid gap-2 mt-4">
                     <a href="{{ route('cart.checkout') }}" class="btn btn-primary btn-lg">
                         <i class="bi bi-credit-card me-2"></i>Thanh toán ngay
                     </a>

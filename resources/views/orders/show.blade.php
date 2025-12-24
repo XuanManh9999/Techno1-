@@ -27,13 +27,32 @@
                         <span class="badge bg-danger">Đã hủy</span>
                     @endif
                 </p>
-                <p><strong>Thanh toán:</strong> 
-                    @if($order->payment_status == 'paid')
-                        <span class="badge bg-success">Đã thanh toán</span>
-                    @elseif($order->payment_status == 'failed')
-                        <span class="badge bg-danger">Thanh toán thất bại</span>
+                <p><strong>Phương thức thanh toán:</strong> 
+                    @if($order->payment_method === 'VNPAY')
+                        <span class="badge bg-primary">
+                            <i class="bi bi-credit-card-2-front me-1"></i>VNPAY
+                        </span>
+                    @elseif($order->payment_method === 'COD')
+                        <span class="badge bg-success">
+                            <i class="bi bi-cash-coin me-1"></i>Thanh toán khi nhận hàng
+                        </span>
                     @else
-                        <span class="badge bg-warning">Chưa thanh toán</span>
+                        <span class="badge bg-secondary">Chưa chọn</span>
+                    @endif
+                </p>
+                <p><strong>Trạng thái thanh toán:</strong> 
+                    @if($order->payment_status == 'paid')
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle me-1"></i>Đã thanh toán
+                        </span>
+                    @elseif($order->payment_status == 'failed')
+                        <span class="badge bg-danger">
+                            <i class="bi bi-x-circle me-1"></i>Thanh toán thất bại
+                        </span>
+                    @else
+                        <span class="badge bg-warning">
+                            <i class="bi bi-clock me-1"></i>Chưa thanh toán
+                        </span>
                     @endif
                 </p>
             </div>
@@ -56,7 +75,18 @@
                     <tbody>
                         @foreach($order->items as $item)
                         <tr>
-                            <td>{{ $item->product->name }}</td>
+                            <td>
+                                <div>
+                                    <strong>{{ $item->product_name }}</strong>
+                                    @if($item->variant_attributes)
+                                    <div class="small text-muted mt-1">
+                                        @foreach($item->variant_attributes as $key => $value)
+                                            <span class="badge bg-light text-dark me-1">{{ $key }}: {{ $value }}</span>
+                                        @endforeach
+                                    </div>
+                                    @endif
+                                </div>
+                            </td>
                             <td>{{ $item->quantity }}</td>
                             <td>{{ number_format($item->price) }}đ</td>
                             <td>{{ number_format($item->subtotal) }}đ</td>
@@ -89,10 +119,29 @@
             </div>
         </div>
 
-        @if($order->payment_status == 'pending')
-        <div class="card mt-3">
+        @if($order->payment_status == 'pending' && $order->payment_method === 'VNPAY')
+        <div class="card mt-3 shadow-sm border-0">
             <div class="card-body">
-                <a href="{{ route('payment.create', $order->id) }}" class="btn btn-primary w-100">Thanh toán ngay</a>
+                <h6 class="mb-3">
+                    <i class="bi bi-credit-card me-2"></i>Thanh toán đơn hàng
+                </h6>
+                <a href="{{ route('payment.create', $order->id) }}" class="btn btn-primary w-100 btn-lg">
+                    <i class="bi bi-credit-card-2-front me-2"></i>Thanh toán qua VNPAY
+                </a>
+                <small class="text-muted d-block mt-2 text-center">
+                    <i class="bi bi-info-circle me-1"></i>Thanh toán trực tuyến an toàn
+                </small>
+            </div>
+        </div>
+        @elseif($order->payment_status == 'pending' && $order->payment_method === 'COD')
+        <div class="card mt-3 shadow-sm border-0">
+            <div class="card-body text-center">
+                <i class="bi bi-cash-coin display-4 text-success d-block mb-3"></i>
+                <h6 class="mb-2">Thanh toán khi nhận hàng</h6>
+                <p class="text-muted small mb-0">
+                    Bạn sẽ thanh toán <strong class="text-danger">{{ number_format($order->total_amount) }}đ</strong> 
+                    khi nhận hàng
+                </p>
             </div>
         </div>
         @endif

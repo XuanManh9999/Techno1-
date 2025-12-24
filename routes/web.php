@@ -27,6 +27,13 @@ Route::post('/password/email', [App\Http\Controllers\Auth\ForgotPasswordControll
 Route::get('/password/reset/{token}', [App\Http\Controllers\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('/password/reset', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
 
+// Address API Routes
+Route::prefix('api/address')->group(function () {
+    Route::get('/provinces', [App\Http\Controllers\Api\AddressController::class, 'getProvinces']);
+    Route::get('/districts/{provinceId}', [App\Http\Controllers\Api\AddressController::class, 'getDistricts']);
+    Route::get('/wards/{districtId}', [App\Http\Controllers\Api\AddressController::class, 'getWards']);
+});
+
 // Authenticated customer routes
 Route::middleware('auth')->group(function () {
     // Cart routes
@@ -44,8 +51,10 @@ Route::middleware('auth')->group(function () {
     // Payment routes
     Route::get('/payment/{orderId}', [PaymentController::class, 'create'])->name('payment.create');
     Route::post('/payment/vnpay/{orderId}', [PaymentController::class, 'vnpay'])->name('payment.vnpay');
-    Route::get('/payment/return', [PaymentController::class, 'vnpayReturn'])->name('payment.return');
 });
+
+// Payment return route (must be public for VNPAY callback)
+Route::get('/payment/return', [PaymentController::class, 'vnpayReturn'])->name('payment.return');
 
 // Admin routes
 Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {

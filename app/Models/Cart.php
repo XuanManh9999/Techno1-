@@ -12,6 +12,7 @@ class Cart extends Model
     protected $fillable = [
         'user_id',
         'product_id',
+        'variant_id',
         'quantity',
     ];
 
@@ -29,9 +30,39 @@ class Cart extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function variant()
+    {
+        return $this->belongsTo(ProductVariant::class);
+    }
+
     public function getSubtotalAttribute()
     {
-        return $this->quantity * $this->product->final_price;
+        $price = $this->variant ? $this->variant->final_price : $this->product->final_price;
+        return $this->quantity * $price;
+    }
+
+    public function getProductNameAttribute()
+    {
+        if ($this->variant) {
+            return $this->variant->display_name;
+        }
+        return $this->product->name;
+    }
+
+    public function getProductImageAttribute()
+    {
+        if ($this->variant && $this->variant->image) {
+            return $this->variant->image;
+        }
+        return $this->product->image;
+    }
+
+    public function getProductPriceAttribute()
+    {
+        if ($this->variant) {
+            return $this->variant->final_price;
+        }
+        return $this->product->final_price;
     }
 }
 
