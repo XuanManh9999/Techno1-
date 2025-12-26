@@ -3,99 +3,139 @@
 @section('title', $product->name . ' - Techno1')
 
 @section('content')
-<nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('home') }}">Trang chủ</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('products.index') }}">Sản phẩm</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('products.index', ['category' => $product->category_id]) }}">{{ $product->category->name }}</a></li>
-        <li class="breadcrumb-item active">{{ $product->name }}</li>
-    </ol>
-</nav>
-
-<div class="row g-4 mb-5">
-    <div class="col-md-6">
-        <div class="card shadow-lg border-0">
-            <div class="img-zoom" style="border-radius: var(--radius);">
-                <img src="{{ $product->image ?? 'https://via.placeholder.com/500' }}" 
-                     class="img-fluid w-100" 
-                     alt="{{ $product->name }}"
-                     style="height: 500px; object-fit: cover;">
-            </div>
+<!-- Breadcrumb Section -->
+<section class="breadcrumb-section">
+    <div class="breadcrumb-background">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb-modern">
+                    <li class="breadcrumb-item">
+                        <a href="{{ route('home') }}">
+                            <i class="bi bi-house-door me-1"></i>Trang chủ
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ route('products.index') }}">Sản phẩm</a>
+                    </li>
+                    @if($product->category)
+                    <li class="breadcrumb-item">
+                        <a href="{{ route('products.index', ['category' => $product->category_id]) }}">{{ $product->category->name }}</a>
+                    </li>
+                    @endif
+                    <li class="breadcrumb-item active">{{ \Illuminate\Support\Str::limit($product->name, 30) }}</li>
+                </ol>
+            </nav>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body p-4">
-                <div class="mb-3">
-                    <span class="badge bg-primary mb-2">{{ $product->category->name }}</span>
-                    @if($product->brand)
-                        <span class="badge bg-info mb-2">{{ $product->brand->name }}</span>
-                    @endif
-                    @if($product->featured)
-                        <span class="badge bg-warning mb-2">
-                            <i class="bi bi-star-fill"></i> Sản phẩm nổi bật
-                        </span>
-                    @endif
-                </div>
+</section>
 
-                <h1 class="mb-3 fw-bold">{{ $product->name }}</h1>
-                
-                <div class="mb-4">
-                    <p class="text-muted mb-2">
-                        <i class="bi bi-upc-scan me-1"></i>SKU: <code>{{ $product->sku }}</code>
-                    </p>
-                    @if($product->sale_price)
-                        <div class="d-flex align-items-baseline gap-3 mb-2">
-                            <span class="product-price-old fs-5">{{ number_format($product->price) }}đ</span>
-                            <span class="product-price fs-2">{{ number_format($product->sale_price) }}đ</span>
-                            <span class="badge bg-danger fs-6">
-                                Tiết kiệm {{ number_format($product->price - $product->sale_price) }}đ
-                            </span>
-                        </div>
-                    @else
-                        <span class="product-price fs-2">{{ number_format($product->price) }}đ</span>
-                    @endif
-                </div>
-
-                <div class="card bg-light mb-4">
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-check-circle-fill text-success me-2 fs-5"></i>
-                                    <div>
-                                        <small class="text-muted d-block">Tình trạng</small>
-                                        <strong class="d-block">
-                                            @if($product->isInStock())
-                                                <span class="text-success">Còn hàng</span>
-                                            @else
-                                                <span class="text-danger">Hết hàng</span>
-                                            @endif
-                                        </strong>
-                                    </div>
+<!-- Product Detail Section -->
+<section class="product-detail-section">
+    <div class="product-detail-background">
+        <div class="container">
+            <div class="row g-4 mb-5">
+                <div class="col-md-6">
+                    <div class="product-image-card">
+                        <div class="product-image-main">
+                            @if($product->image)
+                                <img src="{{ $product->image }}" 
+                                     class="product-main-image" 
+                                     alt="{{ $product->name }}"
+                                     id="mainProductImage"
+                                     onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'500\' height=\'500\'%3E%3Crect width=\'500\' height=\'500\' fill=\'%23f1f5f9\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%2364748b\' font-family=\'Arial\' font-size=\'16\'%3ENo Image%3C/text%3E%3C/svg%3E';">
+                            @else
+                                <div class="product-image-placeholder-large">
+                                    <i class="bi bi-image"></i>
+                                    <span>Không có hình ảnh</span>
                                 </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-box-seam text-primary me-2 fs-5"></i>
-                                    <div>
-                                        <small class="text-muted d-block">Tồn kho</small>
-                                        <strong class="d-block">{{ $product->stock_quantity }} sản phẩm</strong>
-                                    </div>
-                                </div>
-                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>
+                <div class="col-md-6">
+                    <div class="product-info-card">
+                        <div class="product-badges-top mb-3">
+                            @if($product->category)
+                                <span class="badge badge-category">
+                                    <i class="bi bi-tag me-1"></i>{{ $product->category->name }}
+                                </span>
+                            @endif
+                            @if($product->brand)
+                                <span class="badge badge-brand">
+                                    <i class="bi bi-award me-1"></i>{{ $product->brand->name }}
+                                </span>
+                            @endif
+                            @if($product->featured)
+                                <span class="badge badge-featured">
+                                    <i class="bi bi-star-fill"></i> Nổi bật
+                                </span>
+                            @endif
+                            @if($product->sale_price)
+                                <span class="badge badge-discount">
+                                    -{{ round((($product->price - $product->sale_price) / $product->price) * 100) }}%
+                                </span>
+                            @endif
+                        </div>
 
-                @if($product->short_description)
-                <div class="mb-4">
-                    <h5 class="mb-3">
-                        <i class="bi bi-info-circle me-2"></i>Mô tả ngắn
-                    </h5>
-                    <p class="text-muted">{{ $product->short_description }}</p>
-                </div>
-                @endif
+                        <h1 class="product-title mb-3">{{ $product->name }}</h1>
+                        
+                        <div class="product-sku mb-4">
+                            <span class="text-muted">
+                                <i class="bi bi-upc-scan me-1"></i>SKU: 
+                            </span>
+                            <code class="sku-code">{{ $product->sku }}</code>
+                        </div>
+
+                        <div class="product-pricing mb-4">
+                            @if($product->sale_price)
+                                <div class="price-wrapper">
+                                    <span class="product-price-old">{{ number_format($product->price) }}₫</span>
+                                    <span class="product-price-current">{{ number_format($product->sale_price) }}₫</span>
+                                </div>
+                                <div class="savings-badge">
+                                    <i class="bi bi-piggy-bank me-1"></i>
+                                    Tiết kiệm {{ number_format($product->price - $product->sale_price) }}₫
+                                </div>
+                            @else
+                                <span class="product-price-current">{{ number_format($product->price) }}₫</span>
+                            @endif
+                        </div>
+
+                        <div class="product-status-card mb-4">
+                            <div class="status-item">
+                                <div class="status-icon status-icon-success">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                </div>
+                                <div class="status-content">
+                                    <small class="status-label">Tình trạng</small>
+                                    <strong class="status-value">
+                                        @if($product->isInStock())
+                                            <span class="text-success">Còn hàng</span>
+                                        @else
+                                            <span class="text-danger">Hết hàng</span>
+                                        @endif
+                                    </strong>
+                                </div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-icon status-icon-primary">
+                                    <i class="bi bi-box-seam"></i>
+                                </div>
+                                <div class="status-content">
+                                    <small class="status-label">Tồn kho</small>
+                                    <strong class="status-value">{{ $product->stock_quantity ?? 0 }} sản phẩm</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if($product->short_description)
+                        <div class="product-short-description mb-4">
+                            <h5 class="description-title">
+                                <i class="bi bi-info-circle me-2"></i>Mô tả ngắn
+                            </h5>
+                            <p class="description-text">{{ $product->short_description }}</p>
+                        </div>
+                        @endif
 
                 @auth
                     @if($product->isInStock())
@@ -104,13 +144,13 @@
                         <input type="hidden" name="product_id" value="{{ $product->id }}">
                         <input type="hidden" name="variant_id" id="selected_variant_id" value="">
 
-                        @if($product->hasVariants())
+                        @if($product->hasVariants() && $product->variants && $product->variants->count() > 0)
                         <!-- Variant Selection -->
                         <div class="mb-4">
                             @php
                                 $variantGroups = [];
                                 foreach ($product->variants as $variant) {
-                                    if ($variant->attributes) {
+                                    if ($variant && $variant->attributes && is_array($variant->attributes)) {
                                         foreach ($variant->attributes as $attrName => $attrValue) {
                                             if (!isset($variantGroups[$attrName])) {
                                                 $variantGroups[$attrName] = [];
@@ -164,7 +204,7 @@
                                        class="quantity-input" 
                                        value="1" 
                                        min="1" 
-                                       max="{{ $product->stock_quantity }}" 
+                                       max="{{ $product->stock_quantity ?? 999 }}" 
                                        readonly>
                                 <button class="quantity-btn quantity-btn-plus" type="button" onclick="increaseQuantity()" id="increaseBtn">
                                     <i class="bi bi-plus-lg"></i>
@@ -172,7 +212,7 @@
                             </div>
                             <small class="text-muted d-block mt-2">
                                 <i class="bi bi-info-circle me-1"></i>
-                                <span id="stockInfo">Tối đa: {{ $product->stock_quantity }} sản phẩm</span>
+                                <span id="stockInfo">Tối đa: {{ $product->stock_quantity ?? 0 }} sản phẩm</span>
                             </small>
                         </div>
 
@@ -205,70 +245,105 @@
                         <i class="bi bi-info-circle me-2"></i>Vui lòng <a href="{{ route('login') }}" class="alert-link">đăng nhập</a> để mua hàng
                     </div>
                 @endauth
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
 @if($product->description)
-<div class="card shadow-sm border-0 mb-5">
-    <div class="card-header bg-white">
-        <h4 class="mb-0">
-            <i class="bi bi-file-text me-2"></i>Mô tả chi tiết
-        </h4>
-    </div>
-    <div class="card-body">
-        <div class="product-description">
-            {!! nl2br(e($product->description)) !!}
+<section class="product-description-section">
+    <div class="product-description-background">
+        <div class="container">
+            <div class="product-description-card">
+                <div class="description-header">
+                    <h4 class="description-title-main">
+                        <i class="bi bi-file-text me-2"></i>Mô tả chi tiết
+                    </h4>
+                </div>
+                <div class="description-content">
+                    {!! nl2br(e($product->description)) !!}
+                </div>
+            </div>
         </div>
     </div>
-</div>
+</section>
 @endif
 
 @if($relatedProducts->count() > 0)
-<div class="mb-5">
-    <h3 class="mb-4">
-        <i class="bi bi-grid-3x3-gap me-2"></i>Sản phẩm liên quan
-    </h3>
-    <div class="row g-4">
-        @foreach($relatedProducts as $relatedProduct)
-        <div class="col-md-6 col-lg-3">
-            <div class="card product-card h-100 stagger-animation">
-                <div class="position-relative">
-                    <div class="img-zoom">
-                        <img src="{{ $relatedProduct->image ?? 'https://via.placeholder.com/300' }}" 
-                             class="card-img-top" 
-                             alt="{{ $relatedProduct->name }}">
-                    </div>
-                    @if($relatedProduct->sale_price)
-                    <span class="badge bg-danger position-absolute top-0 end-0 m-2">
-                        -{{ round((($relatedProduct->price - $relatedProduct->sale_price) / $relatedProduct->price) * 100) }}%
-                    </span>
-                    @endif
-                </div>
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">{{ $relatedProduct->name }}</h5>
-                    <div class="mt-auto">
-                        <div class="mb-3">
-                            @if($relatedProduct->sale_price)
-                                <div class="mb-1">
-                                    <span class="product-price-old">{{ number_format($relatedProduct->price) }}đ</span>
-                                </div>
-                                <span class="product-price">{{ number_format($relatedProduct->sale_price) }}đ</span>
-                            @else
-                                <span class="product-price">{{ number_format($relatedProduct->price) }}đ</span>
-                            @endif
+<section class="related-products-section">
+    <div class="related-products-background">
+        <div class="container">
+            <div class="section-header mb-5">
+                <h2 class="section-title">
+                    <i class="bi bi-grid-3x3-gap me-2"></i>Sản phẩm liên quan
+                </h2>
+                <p class="section-subtitle">Những sản phẩm cùng danh mục</p>
+            </div>
+            <div class="row g-4">
+                @foreach($relatedProducts as $index => $relatedProduct)
+                <div class="col-md-6 col-lg-3">
+                    <div class="product-card-modern h-100" data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
+                        <div class="product-image-wrapper">
+                            <div class="product-badges">
+                                @if($relatedProduct->sale_price)
+                                <span class="badge badge-discount">
+                                    -{{ round((($relatedProduct->price - $relatedProduct->sale_price) / $relatedProduct->price) * 100) }}%
+                                </span>
+                                @endif
+                            </div>
+                            <a href="{{ route('products.show', $relatedProduct->slug) }}" class="product-image-link">
+                                @if($relatedProduct->image)
+                                    <img src="{{ $relatedProduct->image }}" 
+                                         class="product-image" 
+                                         alt="{{ $relatedProduct->name }}"
+                                         loading="lazy"
+                                         onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'300\'%3E%3Crect width=\'300\' height=\'300\' fill=\'%23f1f5f9\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%2364748b\' font-family=\'Arial\' font-size=\'14\'%3ENo Image%3C/text%3E%3C/svg%3E';">
+                                @else
+                                    <div class="product-image-placeholder">
+                                        <i class="bi bi-image"></i>
+                                        <span>Không có hình ảnh</span>
+                                    </div>
+                                @endif
+                            </a>
+                            <div class="product-overlay">
+                                <a href="{{ route('products.show', $relatedProduct->slug) }}" class="btn btn-quick-view">
+                                    <i class="bi bi-eye"></i> Xem nhanh
+                                </a>
+                            </div>
                         </div>
-                        <a href="{{ route('products.show', $relatedProduct->slug) }}" class="btn btn-primary w-100">
-                            <i class="bi bi-eye me-1"></i> Xem chi tiết
-                        </a>
+                        <div class="product-info">
+                            <div class="product-category">
+                                <i class="bi bi-tag me-1"></i>{{ $relatedProduct->category->name ?? 'N/A' }}
+                            </div>
+                            <h5 class="product-name">
+                                <a href="{{ route('products.show', $relatedProduct->slug) }}">{{ $relatedProduct->name }}</a>
+                            </h5>
+                            @if($relatedProduct->short_description)
+                            <p class="product-description">{{ \Illuminate\Support\Str::limit($relatedProduct->short_description, 70) }}</p>
+                            @endif
+                            <div class="product-footer">
+                                <div class="product-price-wrapper">
+                                    @if($relatedProduct->sale_price)
+                                        <span class="product-price-old">{{ number_format($relatedProduct->price) }}₫</span>
+                                        <span class="product-price">{{ number_format($relatedProduct->sale_price) }}₫</span>
+                                    @else
+                                        <span class="product-price">{{ number_format($relatedProduct->price) }}₫</span>
+                                    @endif
+                                </div>
+                                <a href="{{ route('products.show', $relatedProduct->slug) }}" class="btn btn-product-action" title="Xem chi tiết">
+                                    <i class="bi bi-cart-plus"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                @endforeach
             </div>
         </div>
-        @endforeach
     </div>
-</div>
+</section>
 @endif
 
 @push('scripts')

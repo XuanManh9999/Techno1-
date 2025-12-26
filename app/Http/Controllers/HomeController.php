@@ -11,17 +11,23 @@ class HomeController extends Controller
     public function index()
     {
         try {
-            $featuredProducts = Product::where('featured', true)
+            $featuredProducts = Product::with('category')
+                ->where('featured', true)
                 ->where('status', true)
                 ->limit(8)
                 ->get();
 
-            $latestProducts = Product::where('status', true)
+            $latestProducts = Product::with('category')
+                ->where('status', true)
                 ->orderBy('created_at', 'desc')
                 ->limit(8)
                 ->get();
 
-            $categories = Category::where('status', true)->get();
+            $categories = Category::where('status', true)
+                ->withCount(['products' => function($query) {
+                    $query->where('status', true);
+                }])
+                ->get();
 
             return view('home', compact('featuredProducts', 'latestProducts', 'categories'));
         } catch (\Exception $e) {

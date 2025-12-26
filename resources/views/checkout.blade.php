@@ -3,298 +3,409 @@
 @section('title', 'Thanh toán - Techno1')
 
 @section('content')
-<nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('home') }}">Trang chủ</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('cart.index') }}">Giỏ hàng</a></li>
-        <li class="breadcrumb-item active">Thanh toán</li>
-    </ol>
-</nav>
+<!-- Checkout Section -->
+<section class="checkout-section">
+    <div class="checkout-background">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb-section mb-4">
+                <div class="breadcrumb-background">
+                    <div class="container">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb-modern">
+                                <li class="breadcrumb-item"><a href="{{ route('home') }}">Trang chủ</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('cart.index') }}">Giỏ hàng</a></li>
+                                <li class="breadcrumb-item active">Thanh toán</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+            </div>
 
-<div class="d-flex align-items-center mb-4">
-    <a href="{{ route('cart.index') }}" class="btn btn-outline-secondary me-3">
-        <i class="bi bi-arrow-left"></i>
-    </a>
-    <h2 class="mb-0">
-        <i class="bi bi-credit-card me-2"></i>Thanh toán
-    </h2>
-</div>
+            <!-- Checkout Header -->
+            <div class="checkout-header mb-5">
+                <a href="{{ route('cart.index') }}" class="btn-back">
+                    <i class="bi bi-arrow-left me-2"></i>Quay lại giỏ hàng
+                </a>
+                <div class="checkout-title-wrapper">
+                    <h2 class="section-title">
+                        <i class="bi bi-credit-card me-2"></i>Thanh toán
+                    </h2>
+                    <p class="section-subtitle mb-0">Vui lòng điền thông tin giao hàng để hoàn tất đơn hàng</p>
+                </div>
+            </div>
 
 @if($cartItems->count() > 0)
-<div class="row g-4">
-    <div class="col-lg-8">
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-truck me-2"></i>Thông tin giao hàng
-                </h5>
-            </div>
-            <div class="card-body p-4">
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="checkout-form-card">
+                        <div class="checkout-form-header">
+                            <h5 class="checkout-form-title">
+                                <i class="bi bi-truck me-2"></i>Thông tin giao hàng
+                            </h5>
+                        </div>
+                        <div class="checkout-form-body">
                 <form action="{{ route('orders.store') }}" method="POST" id="checkoutForm">
                     @csrf
 
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-person me-1"></i>Họ và tên *
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('shipping_name') is-invalid @enderror" 
-                                   name="shipping_name" 
-                                   id="shipping_name"
-                                   value="{{ old('shipping_name', auth()->user()->name) }}" 
-                                   required>
-                            @error('shipping_name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                            <form action="{{ route('orders.store') }}" method="POST" id="checkoutForm">
+                                @csrf
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-telephone me-1"></i>Số điện thoại *
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('shipping_phone') is-invalid @enderror" 
-                                   name="shipping_phone" 
-                                   id="shipping_phone"
-                                   value="{{ old('shipping_phone', auth()->user()->phone) }}" 
-                                   required>
-                            @error('shipping_phone')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <!-- Address Selection -->
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-geo-alt-fill me-1"></i>Tỉnh/Thành phố *
-                            </label>
-                            <select class="form-select @error('province_id') is-invalid @enderror" 
-                                    name="province_id" 
-                                    id="province_id" 
-                                    required>
-                                <option value="">-- Chọn Tỉnh/Thành phố --</option>
-                            </select>
-                            @error('province_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <div class="spinner-border spinner-border-sm text-primary d-none mt-2" id="provinceSpinner" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-geo-alt me-1"></i>Quận/Huyện *
-                            </label>
-                            <select class="form-select @error('district_id') is-invalid @enderror" 
-                                    name="district_id" 
-                                    id="district_id" 
-                                    required
-                                    disabled>
-                                <option value="">-- Chọn Quận/Huyện --</option>
-                            </select>
-                            @error('district_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <div class="spinner-border spinner-border-sm text-primary d-none mt-2" id="districtSpinner" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-geo me-1"></i>Phường/Xã *
-                            </label>
-                            <select class="form-select @error('ward_id') is-invalid @enderror" 
-                                    name="ward_id" 
-                                    id="ward_id" 
-                                    required
-                                    disabled>
-                                <option value="">-- Chọn Phường/Xã --</option>
-                            </select>
-                            @error('ward_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <div class="spinner-border spinner-border-sm text-primary d-none mt-2" id="wardSpinner" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-house-door me-1"></i>Địa chỉ chi tiết (Số nhà, tên đường) *
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('address_detail') is-invalid @enderror" 
-                                   name="address_detail" 
-                                   id="address_detail"
-                                   placeholder="Ví dụ: 123 Đường ABC"
-                                   value="{{ old('address_detail') }}" 
-                                   required>
-                            @error('address_detail')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="col-12">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="useFullAddress" checked>
-                                <label class="form-check-label" for="useFullAddress">
-                                    Tự động điền địa chỉ đầy đủ vào ô bên dưới
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-geo-alt me-1"></i>Địa chỉ giao hàng đầy đủ *
-                            </label>
-                            <textarea class="form-control @error('shipping_address') is-invalid @enderror" 
-                                      name="shipping_address" 
-                                      id="shipping_address"
-                                      rows="3" 
-                                      required>{{ old('shipping_address', auth()->user()->address) }}</textarea>
-                            @error('shipping_address')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle me-1"></i>Địa chỉ sẽ được tự động cập nhật khi bạn chọn Tỉnh/Thành phố, Quận/Huyện, Phường/Xã và nhập địa chỉ chi tiết.
-                            </small>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">
-                                <i class="bi bi-sticky me-1"></i>Ghi chú (tùy chọn)
-                            </label>
-                            <textarea class="form-control" 
-                                      name="notes" 
-                                      id="notes"
-                                      rows="2" 
-                                      placeholder="Ghi chú cho người giao hàng...">{{ old('notes') }}</textarea>
-                        </div>
-
-                        <!-- Payment Method Selection -->
-                        <div class="col-12">
-                            <label class="form-label fw-semibold mb-3">
-                                <i class="bi bi-credit-card me-1"></i>Phương thức thanh toán *
-                            </label>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="card payment-method-card h-100">
-                                        <div class="card-body text-center p-4">
-                                            <div class="form-check">
-                                                <input class="form-check-input" 
-                                                       type="radio" 
-                                                       name="payment_method" 
-                                                       id="payment_vnpay" 
-                                                       value="VNPAY" 
-                                                       {{ old('payment_method', 'VNPAY') === 'VNPAY' ? 'checked' : '' }}
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="bi bi-person me-1"></i>Họ và tên <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="input-wrapper">
+                                                <span class="input-icon"><i class="bi bi-person"></i></span>
+                                                <input type="text" 
+                                                       class="form-control @error('shipping_name') is-invalid @enderror" 
+                                                       name="shipping_name" 
+                                                       id="shipping_name"
+                                                       value="{{ old('shipping_name', auth()->user()->name) }}" 
                                                        required>
-                                                <label class="form-check-label w-100" for="payment_vnpay">
-                                                    <div class="payment-icon mb-2">
-                                                        <i class="bi bi-credit-card-2-front display-4 text-primary"></i>
-                                                    </div>
-                                                    <h6 class="fw-bold">Thanh toán VNPAY</h6>
-                                                    <small class="text-muted d-block">Thanh toán trực tuyến qua cổng VNPAY</small>
-                                                </label>
                                             </div>
+                                            @error('shipping_name')
+                                                <div class="error-message">
+                                                    <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="bi bi-telephone me-1"></i>Số điện thoại <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="input-wrapper">
+                                                <span class="input-icon"><i class="bi bi-telephone"></i></span>
+                                                <input type="text" 
+                                                       class="form-control @error('shipping_phone') is-invalid @enderror" 
+                                                       name="shipping_phone" 
+                                                       id="shipping_phone"
+                                                       value="{{ old('shipping_phone', auth()->user()->phone) }}" 
+                                                       required>
+                                            </div>
+                                            @error('shipping_phone')
+                                                <div class="error-message">
+                                                    <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <!-- Address Selection -->
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="bi bi-geo-alt-fill me-1"></i>Tỉnh/Thành phố <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="select-wrapper">
+                                                <select class="form-select @error('province_id') is-invalid @enderror" 
+                                                        name="province_id" 
+                                                        id="province_id" 
+                                                        required>
+                                                    <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                                                </select>
+                                                <div class="spinner-wrapper">
+                                                    <div class="spinner-border spinner-border-sm text-primary d-none" id="provinceSpinner" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @error('province_id')
+                                                <div class="error-message">
+                                                    <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="bi bi-geo-alt me-1"></i>Quận/Huyện <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="select-wrapper">
+                                                <select class="form-select @error('district_id') is-invalid @enderror" 
+                                                        name="district_id" 
+                                                        id="district_id" 
+                                                        required
+                                                        disabled>
+                                                    <option value="">-- Chọn Quận/Huyện --</option>
+                                                </select>
+                                                <div class="spinner-wrapper">
+                                                    <div class="spinner-border spinner-border-sm text-primary d-none" id="districtSpinner" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @error('district_id')
+                                                <div class="error-message">
+                                                    <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="bi bi-geo me-1"></i>Phường/Xã <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="select-wrapper">
+                                                <select class="form-select @error('ward_id') is-invalid @enderror" 
+                                                        name="ward_id" 
+                                                        id="ward_id" 
+                                                        required
+                                                        disabled>
+                                                    <option value="">-- Chọn Phường/Xã --</option>
+                                                </select>
+                                                <div class="spinner-wrapper">
+                                                    <div class="spinner-border spinner-border-sm text-primary d-none" id="wardSpinner" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @error('ward_id')
+                                                <div class="error-message">
+                                                    <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="bi bi-house-door me-1"></i>Địa chỉ chi tiết (Số nhà, tên đường) <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="input-wrapper">
+                                                <span class="input-icon"><i class="bi bi-house-door"></i></span>
+                                                <input type="text" 
+                                                       class="form-control @error('address_detail') is-invalid @enderror" 
+                                                       name="address_detail" 
+                                                       id="address_detail"
+                                                       placeholder="Ví dụ: 123 Đường ABC"
+                                                       value="{{ old('address_detail') }}" 
+                                                       required>
+                                            </div>
+                                            @error('address_detail')
+                                                <div class="error-message">
+                                                    <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
+                                                </div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="form-check-custom">
+                                            <input class="form-check-input" type="checkbox" id="useFullAddress" checked>
+                                            <label class="form-check-label" for="useFullAddress">
+                                                <span class="checkmark"></span>
+                                                Tự động điền địa chỉ đầy đủ vào ô bên dưới
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="bi bi-geo-alt me-1"></i>Địa chỉ giao hàng đầy đủ <span class="text-danger">*</span>
+                                            </label>
+                                            <textarea class="form-control @error('shipping_address') is-invalid @enderror" 
+                                                      name="shipping_address" 
+                                                      id="shipping_address"
+                                                      rows="3" 
+                                                      required>{{ old('shipping_address', auth()->user()->address) }}</textarea>
+                                            @error('shipping_address')
+                                                <div class="error-message">
+                                                    <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
+                                                </div>
+                                            @enderror
+                                            <small class="form-hint">
+                                                <i class="bi bi-info-circle me-1"></i>Địa chỉ sẽ được tự động cập nhật khi bạn chọn Tỉnh/Thành phố, Quận/Huyện, Phường/Xã và nhập địa chỉ chi tiết.
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <label class="form-label">
+                                                <i class="bi bi-sticky me-1"></i>Ghi chú (tùy chọn)
+                                            </label>
+                                            <textarea class="form-control" 
+                                                      name="notes" 
+                                                      id="notes"
+                                                      rows="2" 
+                                                      placeholder="Ghi chú cho người giao hàng...">{{ old('notes') }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <!-- Payment Method Selection -->
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <label class="form-label mb-3">
+                                                <i class="bi bi-credit-card me-1"></i>Phương thức thanh toán <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="payment-method-card-modern">
+                                                        <div class="form-check-custom payment-radio">
+                                                            <input class="form-check-input" 
+                                                                   type="radio" 
+                                                                   name="payment_method" 
+                                                                   id="payment_vnpay" 
+                                                                   value="VNPAY" 
+                                                                   {{ old('payment_method', 'VNPAY') === 'VNPAY' ? 'checked' : '' }}
+                                                                   required>
+                                                            <label class="form-check-label w-100" for="payment_vnpay">
+                                                                <div class="payment-method-content">
+                                                                    <div class="payment-icon">
+                                                                        <i class="bi bi-credit-card-2-front"></i>
+                                                                    </div>
+                                                                    <h6 class="payment-title">Thanh toán VNPAY</h6>
+                                                                    <small class="payment-description">Thanh toán trực tuyến qua cổng VNPAY</small>
+                                                                </div>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="payment-method-card-modern">
+                                                        <div class="form-check-custom payment-radio">
+                                                            <input class="form-check-input" 
+                                                                   type="radio" 
+                                                                   name="payment_method" 
+                                                                   id="payment_cod" 
+                                                                   value="COD"
+                                                                   {{ old('payment_method') === 'COD' ? 'checked' : '' }}
+                                                                   required>
+                                                            <label class="form-check-label w-100" for="payment_cod">
+                                                                <div class="payment-method-content">
+                                                                    <div class="payment-icon payment-icon-cod">
+                                                                        <i class="bi bi-cash-coin"></i>
+                                                                    </div>
+                                                                    <h6 class="payment-title">Thanh toán khi nhận hàng</h6>
+                                                                    <small class="payment-description">Thanh toán bằng tiền mặt khi nhận hàng</small>
+                                                                </div>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @error('payment_method')
+                                                <div class="error-message mt-2">
+                                                    <i class="bi bi-exclamation-circle me-1"></i>{{ $message }}
+                                                </div>
+                                            @enderror
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="card payment-method-card h-100">
-                                        <div class="card-body text-center p-4">
-                                            <div class="form-check">
-                                                <input class="form-check-input" 
-                                                       type="radio" 
-                                                       name="payment_method" 
-                                                       id="payment_cod" 
-                                                       value="COD"
-                                                       {{ old('payment_method') === 'COD' ? 'checked' : '' }}
-                                                       required>
-                                                <label class="form-check-label w-100" for="payment_cod">
-                                                    <div class="payment-icon mb-2">
-                                                        <i class="bi bi-cash-coin display-4 text-success"></i>
-                                                    </div>
-                                                    <h6 class="fw-bold">Thanh toán khi nhận hàng</h6>
-                                                    <small class="text-muted d-block">Thanh toán bằng tiền mặt khi nhận hàng</small>
-                                                </label>
+
+                                <div class="checkout-form-footer">
+                                    <button type="submit" class="btn-checkout-submit" id="submitBtn">
+                                        <i class="bi bi-check-circle me-2"></i>Xác nhận đặt hàng
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="checkout-order-summary-card">
+                        <div class="checkout-order-summary-header">
+                            <h5 class="checkout-order-summary-title">
+                                <i class="bi bi-receipt me-2"></i>Đơn hàng của bạn
+                            </h5>
+                        </div>
+                        <div class="checkout-order-summary-body">
+                            <div class="order-items-list">
+                                @foreach($cartItems as $item)
+                                <div class="order-item-modern">
+                                    <div class="order-item-image-wrapper">
+                                        <a href="{{ route('products.show', $item->product->slug) }}">
+                                            @if($item->product_image ?? $item->product->image)
+                                                <img src="{{ $item->product_image ?? $item->product->image }}" 
+                                                     alt="{{ $item->product_name }}" 
+                                                     class="order-item-image"
+                                                     onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\'%3E%3Crect width=\'80\' height=\'80\' fill=\'%23f1f5f9\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%2364748b\' font-family=\'Arial\' font-size=\'10\'%3ENo Image%3C/text%3E%3C/svg%3E';">
+                                            @else
+                                                <div class="order-item-image-placeholder">
+                                                    <i class="bi bi-image"></i>
+                                                </div>
+                                            @endif
+                                        </a>
+                                    </div>
+                                    <div class="order-item-content">
+                                        <div class="order-item-info">
+                                            <h6 class="order-item-name">
+                                                <a href="{{ route('products.show', $item->product->slug) }}">{{ $item->product_name }}</a>
+                                            </h6>
+                                            @if($item->variant)
+                                            <div class="order-item-variant">
+                                                <i class="bi bi-tag me-1"></i>{{ $item->variant->attributes_string }}
                                             </div>
+                                            @endif
+                                            <div class="order-item-meta">
+                                                <div class="order-item-quantity">
+                                                    <i class="bi bi-box"></i>
+                                                    <span>Số lượng: <strong>{{ $item->quantity }}</strong></span>
+                                                </div>
+                                                <div class="order-item-unit-price">
+                                                    <i class="bi bi-currency-dollar"></i>
+                                                    <span>Đơn giá: <strong>{{ number_format($item->product->final_price) }}₫</strong></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="order-item-price-wrapper">
+                                            <div class="order-item-price-label">Thành tiền</div>
+                                            <div class="order-item-price">{{ number_format($item->subtotal) }}₫</div>
                                         </div>
                                     </div>
                                 </div>
+                                @endforeach
                             </div>
-                            @error('payment_method')
-                                <div class="text-danger small mt-2">{{ $message }}</div>
-                            @enderror
+                            <div class="order-summary-divider"></div>
+                            <div class="summary-row">
+                                <span class="summary-label">Tạm tính:</span>
+                                <span class="summary-value">{{ number_format($total) }}₫</span>
+                            </div>
+                            <div class="summary-row">
+                                <span class="summary-label">Phí vận chuyển:</span>
+                                <span class="summary-value summary-value-success">
+                                    <i class="bi bi-check-circle me-1"></i>Miễn phí
+                                </span>
+                            </div>
+                            <div class="order-summary-divider"></div>
+                            <div class="summary-row summary-row-total">
+                                <span class="summary-label">Tổng cộng:</span>
+                                <span class="summary-value summary-value-total">{{ number_format($total) }}₫</span>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-primary btn-lg w-100" id="submitBtn">
-                            <i class="bi bi-check-circle me-2"></i>Xác nhận đặt hàng
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-        <div class="card shadow-lg border-0 sticky-top" style="top: 100px;">
-            <div class="card-header bg-gradient text-white">
-                <h5 class="mb-0">
-                    <i class="bi bi-receipt me-2"></i>Đơn hàng của bạn
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    @foreach($cartItems as $item)
-                    <div class="d-flex justify-content-between align-items-start mb-3 pb-3 border-bottom">
-                        <div class="flex-grow-1">
-                            <h6 class="mb-1">{{ $item->product_name }}</h6>
-                            @if($item->variant)
-                            <small class="text-info d-block mb-1">
-                                <i class="bi bi-tag me-1"></i>{{ $item->variant->attributes_string }}
-                            </small>
-                            @endif
-                            <small class="text-muted">x{{ $item->quantity }}</small>
-                        </div>
-                        <strong class="text-danger ms-2">{{ number_format($item->subtotal) }}đ</strong>
-                    </div>
-                    @endforeach
-                </div>
-                <hr>
-                <div class="d-flex justify-content-between mb-3">
-                    <span class="text-muted">Tạm tính:</span>
-                    <strong>{{ number_format($total) }}đ</strong>
-                </div>
-                <div class="d-flex justify-content-between mb-3">
-                    <span class="text-muted">Phí vận chuyển:</span>
-                    <strong class="text-success">Miễn phí</strong>
-                </div>
-                <hr>
-                <div class="d-flex justify-content-between mb-4">
-                    <span class="fw-bold fs-5">Tổng cộng:</span>
-                    <strong class="text-danger fs-4">{{ number_format($total) }}đ</strong>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 @else
-<div class="card shadow-sm border-0">
-    <div class="card-body text-center py-5">
-        <i class="bi bi-cart-x display-1 text-muted d-block mb-3"></i>
-        <h3 class="mb-3">Giỏ hàng trống</h3>
-        <p class="text-muted mb-4">Bạn chưa có sản phẩm nào trong giỏ hàng.</p>
-        <a href="{{ route('products.index') }}" class="btn btn-primary btn-lg">
-            <i class="bi bi-arrow-right me-2"></i>Tiếp tục mua sắm
-        </a>
-    </div>
-</div>
+            <div class="empty-cart-card">
+                <div class="empty-cart-content">
+                    <div class="empty-cart-icon">
+                        <i class="bi bi-cart-x"></i>
+                    </div>
+                    <h3 class="empty-cart-title">Giỏ hàng trống</h3>
+                    <p class="empty-cart-text">Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy bắt đầu mua sắm ngay!</p>
+                    <a href="{{ route('products.index') }}" class="btn-shopping-now">
+                        <i class="bi bi-arrow-right me-2"></i>Tiếp tục mua sắm
+                    </a>
+                </div>
+            </div>
 @endif
+        </div>
+    </div>
+</section>
 
 @push('scripts')
 <script>

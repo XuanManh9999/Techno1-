@@ -59,10 +59,13 @@ class OrderController extends Controller
                 return $item->subtotal;
             });
 
-            $paymentStatus = $request->payment_method === 'COD' 
-                ? Order::PAYMENT_STATUS_PENDING 
-                : Order::PAYMENT_STATUS_PENDING;
+            if ($totalAmount <= 0) {
+                return back()->with('error', 'Tổng tiền đơn hàng không hợp lệ');
+            }
 
+            $paymentStatus = Order::PAYMENT_STATUS_PENDING;
+
+            // Tạo order
             $order = Order::create([
                 'user_id' => Auth::id(),
                 'order_number' => Order::generateOrderNumber(),
@@ -80,26 +83,18 @@ class OrderController extends Controller
                 'notes' => $request->notes,
             ]);
 
-            // Nếu là COD, tạo payment record và chuyển sang processing
-            if ($request->payment_method === 'COD') {
-                Payment::create([
-                    'order_id' => $order->id,
-                    'payment_method' => 'COD',
-                    'amount' => $totalAmount,
-                    'status' => Payment::STATUS_PENDING,
-                ]);
-
-                $order->update([
-                    'status' => Order::STATUS_PROCESSING,
-                ]);
-
-                DB::commit();
-
-                return redirect()->route('orders.show', $order->id)
-                    ->with('success', 'Đặt hàng thành công! Bạn sẽ thanh toán khi nhận hàng.');
-            }
-
+            // Tạo order items và cập nhật stock
             foreach ($cartItems as $cartItem) {
+                // Kiểm tra stock
+                $availableStock = $cartItem->variant 
+                    ? $cartItem->variant->stock_quantity 
+                    : $cartItem->product->stock_quantity;
+
+                if ($availableStock < $cartItem->quantity) {
+                    DB::rollBack();
+                    return back()->with('error', "Sản phẩm '{$cartItem->product_name}' không đủ số lượng tồn kho.");
+                }
+
                 $price = $cartItem->variant 
                     ? $cartItem->variant->final_price 
                     : $cartItem->product->final_price;
@@ -127,12 +122,46 @@ class OrderController extends Controller
 
             DB::commit();
 
+            // Nếu là COD, tạo payment record và chuyển sang processing
+            if ($request->payment_method === 'COD') {
+                Payment::create([
+                    'order_id' => $order->id,
+                    'payment_method' => 'COD',
+                    'amount' => $totalAmount,
+                    'status' => Payment::STATUS_PENDING,
+                ]);
+
+                $order->update([
+                    'status' => Order::STATUS_PROCESSING,
+                ]);
+
+                return redirect()->route('orders.show', $order->id)
+                    ->with('success', 'Đặt hàng thành công! Bạn sẽ thanh toán khi nhận hàng.');
+            }
+
             // Nếu là VNPAY, chuyển đến trang thanh toán
-            return redirect()->route('payment.create', $order->id)
-                ->with('success', 'Đặt hàng thành công. Vui lòng thanh toán.');
+            if ($request->payment_method === 'VNPAY') {
+                // Kiểm tra config VNPAY
+                $vnp_TmnCode = config('services.vnpay.tmn_code');
+                $vnp_HashSecret = config('services.vnpay.hash_secret');
+                
+                if (empty($vnp_TmnCode) || empty($vnp_HashSecret)) {
+                    return back()->with('error', 'Hệ thống thanh toán VNPAY chưa được cấu hình. Vui lòng liên hệ quản trị viên.');
+                }
+
+                return redirect()->route('payment.create', $order->id)
+                    ->with('success', 'Đặt hàng thành công. Vui lòng thanh toán.');
+            }
+
+            return back()->with('error', 'Phương thức thanh toán không hợp lệ');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Có lỗi xảy ra khi đặt hàng');
+            \Log::error('Order creation error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'payment_method' => $request->payment_method,
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->with('error', 'Có lỗi xảy ra khi đặt hàng: ' . $e->getMessage());
         }
     }
 }

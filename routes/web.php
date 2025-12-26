@@ -6,6 +6,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 
@@ -51,10 +52,17 @@ Route::middleware('auth')->group(function () {
     // Payment routes
     Route::get('/payment/{orderId}', [PaymentController::class, 'create'])->name('payment.create');
     Route::post('/payment/vnpay/{orderId}', [PaymentController::class, 'vnpay'])->name('payment.vnpay');
+
+    // Profile routes
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/change-password', [ProfileController::class, 'showChangePasswordForm'])->name('profile.change-password');
+    Route::post('/profile/change-password', [ProfileController::class, 'changePassword'])->name('profile.change-password.post');
 });
 
-// Payment return route (must be public for VNPAY callback)
+// Payment return routes (must be public for VNPAY callback)
 Route::get('/payment/return', [PaymentController::class, 'vnpayReturn'])->name('payment.return');
+Route::get('/vnpay/return', [PaymentController::class, 'vnpayReturn'])->name('vnpay.return');
 
 // Admin routes
 Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(function () {

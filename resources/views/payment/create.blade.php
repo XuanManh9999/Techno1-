@@ -3,147 +3,190 @@
 @section('title', 'Thanh toán - Techno1')
 
 @section('content')
-<nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('home') }}">Trang chủ</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('orders.index') }}">Đơn hàng</a></li>
-        <li class="breadcrumb-item active">Thanh toán</li>
-    </ol>
-</nav>
-
-<div class="row g-4">
-    <div class="col-lg-8">
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-receipt me-2"></i>Thông tin đơn hàng
-                </h5>
+<!-- Payment Section -->
+<section class="payment-section">
+    <div class="payment-background">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <div class="breadcrumb-section mb-4">
+                <div class="breadcrumb-background">
+                    <div class="container">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb-modern">
+                                <li class="breadcrumb-item"><a href="{{ route('home') }}">Trang chủ</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('orders.index') }}">Đơn hàng</a></li>
+                                <li class="breadcrumb-item active">Thanh toán</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="info-item">
-                            <small class="text-muted d-block mb-1">Mã đơn hàng</small>
-                            <strong class="fs-5">{{ $order->order_number }}</strong>
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <!-- Order Information Card -->
+                    <div class="payment-order-info-card">
+                        <div class="payment-order-info-header">
+                            <h5 class="payment-order-info-title">
+                                <i class="bi bi-receipt me-2"></i>Thông tin đơn hàng
+                            </h5>
+                        </div>
+                        <div class="payment-order-info-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="payment-info-item">
+                                        <div class="payment-info-label">
+                                            <i class="bi bi-hash me-1"></i>Mã đơn hàng
+                                        </div>
+                                        <div class="payment-info-value">{{ $order->order_number }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="payment-info-item">
+                                        <div class="payment-info-label">
+                                            <i class="bi bi-currency-dollar me-1"></i>Tổng tiền
+                                        </div>
+                                        <div class="payment-info-value payment-info-value-total">{{ number_format($order->total_amount) }}₫</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="payment-info-item">
+                                        <div class="payment-info-label">
+                                            <i class="bi bi-credit-card me-1"></i>Phương thức thanh toán
+                                        </div>
+                                        <div class="payment-info-value">
+                                            @if($order->payment_method === 'VNPAY')
+                                                <span class="payment-method-badge payment-method-vnpay">
+                                                    <i class="bi bi-credit-card-2-front me-1"></i>VNPAY
+                                                </span>
+                                            @elseif($order->payment_method === 'COD')
+                                                <span class="payment-method-badge payment-method-cod">
+                                                    <i class="bi bi-cash-coin me-1"></i>Thanh toán khi nhận hàng
+                                                </span>
+                                            @else
+                                                <span class="text-muted">Chưa chọn</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="payment-info-item">
+                                        <div class="payment-info-label">
+                                            <i class="bi bi-info-circle me-1"></i>Trạng thái
+                                        </div>
+                                        <div class="payment-info-value">
+                                            <span class="payment-status-badge payment-status-pending">
+                                                <i class="bi bi-clock me-1"></i>Chờ thanh toán
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="info-item">
-                            <small class="text-muted d-block mb-1">Tổng tiền</small>
-                            <strong class="text-danger fs-4">{{ number_format($order->total_amount) }}đ</strong>
+
+                    @if($order->payment_method === 'VNPAY')
+                    <!-- VNPAY Payment Card -->
+                    <div class="payment-vnpay-card">
+                        <div class="payment-vnpay-header">
+                            <h5 class="payment-vnpay-title">
+                                <i class="bi bi-credit-card me-2"></i>Thanh toán qua VNPAY
+                            </h5>
+                        </div>
+                        <div class="payment-vnpay-body">
+                            <div class="payment-instruction-box">
+                                <div class="payment-instruction-icon">
+                                    <i class="bi bi-info-circle"></i>
+                                </div>
+                                <div class="payment-instruction-content">
+                                    <strong>Hướng dẫn:</strong> Bạn sẽ được chuyển đến cổng thanh toán VNPAY để hoàn tất thanh toán. 
+                                    Sau khi thanh toán thành công, bạn sẽ được chuyển về trang đơn hàng.
+                                    <br><br>
+                                    <small class="text-muted">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>
+                                        <strong>Lưu ý:</strong> Nếu gặp lỗi "Website chưa được phê duyệt", vui lòng đăng ký website của bạn trong VNPAY Sandbox hoặc liên hệ VNPAY để được hỗ trợ.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <form action="{{ route('payment.vnpay', $order->id) }}" method="POST" id="vnpayForm">
+                                @csrf
+                                <div class="payment-vnpay-actions">
+                                    <button type="submit" class="btn-payment-vnpay">
+                                        <i class="bi bi-credit-card-2-front me-2"></i>Thanh toán qua VNPAY
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="info-item">
-                            <small class="text-muted d-block mb-1">Phương thức thanh toán</small>
-                            <strong>
-                                @if($order->payment_method === 'VNPAY')
-                                    <i class="bi bi-credit-card-2-front me-1"></i>VNPAY
-                                @elseif($order->payment_method === 'COD')
-                                    <i class="bi bi-cash-coin me-1"></i>Thanh toán khi nhận hàng
-                                @else
-                                    Chưa chọn
-                                @endif
-                            </strong>
+                    @else
+                    <!-- COD Confirmation Card -->
+                    <div class="payment-cod-card">
+                        <div class="payment-cod-content">
+                            <div class="payment-cod-icon">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                            <h4 class="payment-cod-title">Đơn hàng đã được xác nhận!</h4>
+                            <p class="payment-cod-text">
+                                Bạn đã chọn phương thức thanh toán khi nhận hàng. 
+                                Vui lòng chuẩn bị số tiền <strong class="payment-cod-amount">{{ number_format($order->total_amount) }}₫</strong> 
+                                để thanh toán khi nhận hàng.
+                            </p>
+                            <a href="{{ route('orders.show', $order->id) }}" class="btn-view-order">
+                                <i class="bi bi-eye me-2"></i>Xem chi tiết đơn hàng
+                            </a>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="info-item">
-                            <small class="text-muted d-block mb-1">Trạng thái</small>
-                            <span class="badge bg-warning">
-                                <i class="bi bi-clock me-1"></i>Chờ thanh toán
-                            </span>
+                    @endif
+                </div>
+
+                <!-- Shipping Information Sidebar -->
+                <div class="col-lg-4">
+                    <div class="payment-shipping-card">
+                        <div class="payment-shipping-header">
+                            <h5 class="payment-shipping-title">
+                                <i class="bi bi-truck me-2"></i>Thông tin giao hàng
+                            </h5>
+                        </div>
+                        <div class="payment-shipping-body">
+                            <div class="shipping-info-item">
+                                <div class="shipping-info-label">
+                                    <i class="bi bi-person me-1"></i>Người nhận
+                                </div>
+                                <div class="shipping-info-value">{{ $order->shipping_name }}</div>
+                            </div>
+                            <div class="shipping-info-item">
+                                <div class="shipping-info-label">
+                                    <i class="bi bi-telephone me-1"></i>Điện thoại
+                                </div>
+                                <div class="shipping-info-value">{{ $order->shipping_phone }}</div>
+                            </div>
+                            <div class="shipping-info-item">
+                                <div class="shipping-info-label">
+                                    <i class="bi bi-geo-alt me-1"></i>Địa chỉ
+                                </div>
+                                <div class="shipping-info-value">{{ $order->shipping_address }}</div>
+                            </div>
+                            @if($order->notes)
+                            <div class="shipping-info-item">
+                                <div class="shipping-info-label">
+                                    <i class="bi bi-sticky me-1"></i>Ghi chú
+                                </div>
+                                <div class="shipping-info-value">{{ $order->notes }}</div>
+                            </div>
+                            @endif
+                            <div class="payment-shipping-divider"></div>
+                            <div class="shipping-total-row">
+                                <span class="shipping-total-label">Tổng tiền:</span>
+                                <span class="shipping-total-value">{{ number_format($order->total_amount) }}₫</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        @if($order->payment_method === 'VNPAY')
-        <div class="card shadow-sm border-0">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-credit-card me-2"></i>Thanh toán qua VNPAY
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-info mb-4">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <strong>Hướng dẫn:</strong> Bạn sẽ được chuyển đến cổng thanh toán VNPAY để hoàn tất thanh toán. 
-                    Sau khi thanh toán thành công, bạn sẽ được chuyển về trang đơn hàng.
-                </div>
-
-                <form action="{{ route('payment.vnpay', $order->id) }}" method="POST" id="vnpayForm">
-                    @csrf
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-credit-card-2-front me-2"></i>Thanh toán qua VNPAY
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        @else
-        <div class="card shadow-sm border-0">
-            <div class="card-body text-center py-5">
-                <i class="bi bi-check-circle-fill display-1 text-success d-block mb-3"></i>
-                <h4 class="mb-3">Đơn hàng đã được xác nhận!</h4>
-                <p class="text-muted mb-4">
-                    Bạn đã chọn phương thức thanh toán khi nhận hàng. 
-                    Vui lòng chuẩn bị số tiền <strong class="text-danger">{{ number_format($order->total_amount) }}đ</strong> 
-                    để thanh toán khi nhận hàng.
-                </p>
-                <a href="{{ route('orders.show', $order->id) }}" class="btn btn-primary btn-lg">
-                    <i class="bi bi-eye me-2"></i>Xem chi tiết đơn hàng
-                </a>
-            </div>
-        </div>
-        @endif
     </div>
-
-    <div class="col-lg-4">
-        <div class="card shadow-lg border-0 sticky-top" style="top: 100px;">
-            <div class="card-header bg-gradient text-white">
-                <h5 class="mb-0">
-                    <i class="bi bi-truck me-2"></i>Thông tin giao hàng
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <small class="text-muted d-block mb-1">
-                        <i class="bi bi-person me-1"></i>Người nhận
-                    </small>
-                    <strong>{{ $order->shipping_name }}</strong>
-                </div>
-                <div class="mb-3">
-                    <small class="text-muted d-block mb-1">
-                        <i class="bi bi-telephone me-1"></i>Điện thoại
-                    </small>
-                    <strong>{{ $order->shipping_phone }}</strong>
-                </div>
-                <div class="mb-3">
-                    <small class="text-muted d-block mb-1">
-                        <i class="bi bi-geo-alt me-1"></i>Địa chỉ
-                    </small>
-                    <strong>{{ $order->shipping_address }}</strong>
-                </div>
-                @if($order->notes)
-                <div class="mb-3">
-                    <small class="text-muted d-block mb-1">
-                        <i class="bi bi-sticky me-1"></i>Ghi chú
-                    </small>
-                    <p class="mb-0">{{ $order->notes }}</p>
-                </div>
-                @endif
-                <hr>
-                <div class="d-flex justify-content-between mb-3">
-                    <span class="text-muted">Tổng tiền:</span>
-                    <strong class="text-danger fs-5">{{ number_format($order->total_amount) }}đ</strong>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+</section>
 
 @push('scripts')
 <script>
@@ -152,8 +195,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (vnpayForm) {
         vnpayForm.addEventListener('submit', function(e) {
             const submitBtn = this.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang chuyển hướng...';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang chuyển hướng...';
+            }
         });
     }
 });

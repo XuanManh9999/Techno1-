@@ -63,6 +63,22 @@
                                 <li><h6 class="dropdown-header">{{ auth()->user()->name }}</h6></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
+                                    <a class="dropdown-item" href="{{ route('profile.index') }}">
+                                        <i class="bi bi-person me-2"></i> Thông tin cá nhân
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('profile.change-password') }}">
+                                        <i class="bi bi-key me-2"></i> Đổi mật khẩu
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('orders.index') }}">
+                                        <i class="bi bi-receipt me-2"></i> Đơn hàng của tôi
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
                                     <form action="{{ route('logout') }}" method="POST">
                                         @csrf
                                         <button type="submit" class="dropdown-item">
@@ -89,10 +105,10 @@
         </div>
     </nav>
 
-    <main class="py-4">
+    <main>
         <div class="container">
             @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <div class="alert alert-success alert-dismissible fade show shadow-sm mt-4 mb-0" role="alert">
                     <i class="bi bi-check-circle-fill me-2"></i>
                     <strong>Thành công!</strong> {{ session('success') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -100,7 +116,7 @@
             @endif
 
             @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm mt-4 mb-0" role="alert">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     <strong>Lỗi!</strong> {{ session('error') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -108,42 +124,187 @@
             @endif
 
             @if(session('status'))
-                <div class="alert alert-info alert-dismissible fade show shadow-sm" role="alert">
+                <div class="alert alert-info alert-dismissible fade show shadow-sm mt-4 mb-0" role="alert">
                     <i class="bi bi-info-circle-fill me-2"></i>
                     {{ session('status') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
-
-            @yield('content')
         </div>
+        @yield('content')
     </main>
 
-    <footer class="bg-dark text-white mt-5 py-4">
+    <footer class="footer-professional">
         <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <h5>Techno1</h5>
-                    <p class="text-muted">Trang thiết bị điện tử chất lượng cao</p>
+            <div class="row g-4">
+                <!-- Brand Column -->
+                <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                    <div class="footer-brand">
+                        <a href="{{ route('home') }}" class="d-flex align-items-center mb-3 text-decoration-none">
+                            <i class="bi bi-lightning-charge-fill footer-logo-icon"></i>
+                            <span class="footer-logo-text">Techno1</span>
+                        </a>
+                        <p class="footer-description">
+                            Chuyên cung cấp trang thiết bị điện tử chất lượng cao với giá cả hợp lý. 
+                            Cam kết mang đến trải nghiệm mua sắm tốt nhất cho khách hàng.
+                        </p>
+                        <div class="footer-social">
+                            <a href="#" class="social-link" aria-label="Facebook" title="Facebook">
+                                <i class="bi bi-facebook"></i>
+                            </a>
+                            <a href="#" class="social-link" aria-label="Instagram" title="Instagram">
+                                <i class="bi bi-instagram"></i>
+                            </a>
+                            <a href="#" class="social-link" aria-label="YouTube" title="YouTube">
+                                <i class="bi bi-youtube"></i>
+                            </a>
+                            <a href="#" class="social-link" aria-label="Zalo" title="Zalo">
+                                <i class="bi bi-chat-dots"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <h5>Liên kết</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="{{ route('home') }}" class="text-white-50 text-decoration-none">Trang chủ</a></li>
-                        <li><a href="{{ route('products.index') }}" class="text-white-50 text-decoration-none">Sản phẩm</a></li>
+
+                <!-- Quick Links Column -->
+                <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
+                    <h5 class="footer-title">Liên kết nhanh</h5>
+                    <ul class="footer-links">
+                        <li>
+                            <a href="{{ route('home') }}">
+                                <i class="bi bi-chevron-right"></i> Trang chủ
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('products.index') }}">
+                                <i class="bi bi-chevron-right"></i> Sản phẩm
+                            </a>
+                        </li>
+                        @auth
+                        <li>
+                            <a href="{{ route('cart.index') }}">
+                                <i class="bi bi-chevron-right"></i> Giỏ hàng
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('orders.index') }}">
+                                <i class="bi bi-chevron-right"></i> Đơn hàng
+                            </a>
+                        </li>
+                        @endauth
                     </ul>
                 </div>
-                <div class="col-md-4">
-                    <h5>Liên hệ</h5>
-                    <p class="text-muted mb-0">
-                        <i class="bi bi-envelope"></i> info@techno1.com<br>
-                        <i class="bi bi-telephone"></i> 0123 456 789
-                    </p>
+
+                <!-- Support Column -->
+                <div class="col-lg-2 col-md-6 mb-4 mb-lg-0">
+                    <h5 class="footer-title">Hỗ trợ</h5>
+                    <ul class="footer-links">
+                        <li>
+                            <a href="#">
+                                <i class="bi bi-chevron-right"></i> Về chúng tôi
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="bi bi-chevron-right"></i> Chính sách bảo hành
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="bi bi-chevron-right"></i> Chính sách đổi trả
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="bi bi-chevron-right"></i> Hướng dẫn mua hàng
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="bi bi-chevron-right"></i> Câu hỏi thường gặp
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Contact Column -->
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="footer-title">Liên hệ với chúng tôi</h5>
+                    <ul class="footer-contact">
+                        <li>
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <div>
+                                <strong>Địa chỉ:</strong><br>
+                                123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh
+                            </div>
+                        </li>
+                        <li>
+                            <i class="bi bi-envelope-fill"></i>
+                            <div>
+                                <strong>Email:</strong><br>
+                                <a href="mailto:info@techno1.com">info@techno1.com</a>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="bi bi-telephone-fill"></i>
+                            <div>
+                                <strong>Hotline:</strong><br>
+                                <a href="tel:0123456789">0123 456 789</a>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="bi bi-clock-fill"></i>
+                            <div>
+                                <strong>Giờ làm việc:</strong><br>
+                                Thứ 2 - Chủ nhật: 8:00 - 22:00
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
-            <hr class="my-4 bg-secondary">
-            <div class="text-center">
-                <p class="mb-0">&copy; {{ date('Y') }} Techno1. All rights reserved.</p>
+
+            <!-- Newsletter Section -->
+            <div class="footer-newsletter">
+                <div class="row align-items-center">
+                    <div class="col-lg-4 mb-3 mb-lg-0">
+                        <h5 class="mb-0">
+                            <i class="bi bi-envelope-paper me-2"></i>
+                            Đăng ký nhận tin
+                        </h5>
+                        <p class="mb-0 small">Nhận thông tin khuyến mãi và sản phẩm mới</p>
+                    </div>
+                    <div class="col-lg-8">
+                        <form class="newsletter-form" action="#" method="POST">
+                            <div class="input-group">
+                                <input type="email" class="form-control newsletter-input" placeholder="Nhập email của bạn..." required>
+                                <button class="btn newsletter-btn" type="submit">
+                                    <i class="bi bi-send-fill me-1"></i> Đăng ký
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <hr class="footer-divider">
+
+            <!-- Copyright -->
+            <div class="footer-bottom">
+                <div class="row align-items-center">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <p class="mb-0">
+                            &copy; {{ date('Y') }} <strong>Techno1</strong>. Tất cả quyền được bảo lưu.
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <div class="footer-payment">
+                            <span class="me-2">Chấp nhận thanh toán:</span>
+                            <i class="bi bi-credit-card-2-front me-2" title="Thẻ tín dụng"></i>
+                            <i class="bi bi-wallet2 me-2" title="Ví điện tử"></i>
+                            <i class="bi bi-bank me-2" title="Chuyển khoản"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </footer>

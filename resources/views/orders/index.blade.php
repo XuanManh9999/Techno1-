@@ -3,113 +3,118 @@
 @section('title', 'Đơn hàng của tôi - Techno1')
 
 @section('content')
-<div class="d-flex align-items-center mb-4">
-    <h2 class="mb-0">
-        <i class="bi bi-receipt me-2"></i>Đơn hàng của tôi
-    </h2>
-</div>
-
-@if($orders->count() > 0)
-<div class="card shadow-sm border-0">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">
-            <i class="bi bi-list-ul me-2"></i>Danh sách đơn hàng ({{ $orders->total() }})
-        </h5>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>Mã đơn hàng</th>
-                        <th>Ngày đặt</th>
-                        <th>Tổng tiền</th>
-                        <th>Trạng thái</th>
-                        <th>Thanh toán</th>
-                        <th class="text-center">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($orders as $order)
-                    <tr>
-                        <td>
-                            <strong class="text-primary">#{{ $order->order_number }}</strong>
-                        </td>
-                        <td>
-                            <i class="bi bi-calendar3 me-1 text-muted"></i>
-                            {{ $order->created_at->format('d/m/Y') }}
-                            <br>
-                            <small class="text-muted">{{ $order->created_at->format('H:i') }}</small>
-                        </td>
-                        <td>
-                            <strong class="text-danger fs-5">{{ number_format($order->total_amount) }}đ</strong>
-                        </td>
-                        <td>
-                            @if($order->status == 'pending')
-                                <span class="badge bg-warning">
-                                    <i class="bi bi-clock me-1"></i>Chờ xử lý
-                                </span>
-                            @elseif($order->status == 'processing')
-                                <span class="badge bg-info">
-                                    <i class="bi bi-gear me-1"></i>Đang xử lý
-                                </span>
-                            @elseif($order->status == 'shipped')
-                                <span class="badge bg-primary">
-                                    <i class="bi bi-truck me-1"></i>Đang giao
-                                </span>
-                            @elseif($order->status == 'delivered')
-                                <span class="badge bg-success">
-                                    <i class="bi bi-check-circle me-1"></i>Đã giao
-                                </span>
-                            @else
-                                <span class="badge bg-danger">
-                                    <i class="bi bi-x-circle me-1"></i>Đã hủy
-                                </span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($order->payment_status == 'paid')
-                                <span class="badge bg-success">
-                                    <i class="bi bi-check-circle me-1"></i>Đã thanh toán
-                                </span>
-                            @elseif($order->payment_status == 'failed')
-                                <span class="badge bg-danger">
-                                    <i class="bi bi-x-circle me-1"></i>Thanh toán thất bại
-                                </span>
-                            @else
-                                <span class="badge bg-warning">
-                                    <i class="bi bi-clock me-1"></i>Chưa thanh toán
-                                </span>
-                            @endif
-                        </td>
-                        <td class="text-center">
-                            <a href="{{ route('orders.show', $order->id) }}" class="btn btn-sm btn-primary">
-                                <i class="bi bi-eye me-1"></i>Chi tiết
-                            </a>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+<div class="orders-section">
+    <div class="container">
+        <div class="orders-header">
+            <h2>
+                <i class="bi bi-receipt"></i>Đơn hàng của tôi
+            </h2>
         </div>
-    </div>
-</div>
 
-@if($orders->hasPages())
-<div class="mt-4">
-    {{ $orders->links() }}
-</div>
-@endif
-@else
-<div class="card shadow-sm border-0">
-    <div class="card-body text-center py-5">
-        <i class="bi bi-inbox display-1 text-muted d-block mb-3"></i>
-        <h3 class="mb-3">Chưa có đơn hàng nào</h3>
-        <p class="text-muted mb-4">Bạn chưa đặt đơn hàng nào. Hãy bắt đầu mua sắm!</p>
-        <a href="{{ route('products.index') }}" class="btn btn-primary btn-lg">
-            <i class="bi bi-arrow-right me-2"></i>Mua sắm ngay
-        </a>
+        @if($orders->count() > 0)
+        <div class="orders-card card">
+            <div class="card-header">
+                <h5>
+                    <i class="bi bi-list-ul"></i>Danh sách đơn hàng ({{ $orders->total() }})
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="orders-table-wrapper">
+                    <table class="orders-table table">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn hàng</th>
+                                <th>Ngày đặt</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Thanh toán</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($orders as $order)
+                            <tr>
+                                <td>
+                                    <span class="order-number">#{{ $order->order_number }}</span>
+                                </td>
+                                <td>
+                                    <div class="order-date">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        {{ $order->created_at->format('d/m/Y') }}
+                                        <small>{{ $order->created_at->format('H:i') }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="order-amount">{{ number_format($order->total_amount) }}₫</span>
+                                </td>
+                                <td>
+                                    @if($order->status == 'pending')
+                                        <span class="order-status-badge bg-warning text-dark">
+                                            <i class="bi bi-clock"></i>Chờ xử lý
+                                        </span>
+                                    @elseif($order->status == 'processing')
+                                        <span class="order-status-badge bg-info text-white">
+                                            <i class="bi bi-gear"></i>Đang xử lý
+                                        </span>
+                                    @elseif($order->status == 'shipped')
+                                        <span class="order-status-badge bg-primary text-white">
+                                            <i class="bi bi-truck"></i>Đang giao
+                                        </span>
+                                    @elseif($order->status == 'delivered')
+                                        <span class="order-status-badge bg-success text-white">
+                                            <i class="bi bi-check-circle"></i>Đã giao
+                                        </span>
+                                    @else
+                                        <span class="order-status-badge bg-danger text-white">
+                                            <i class="bi bi-x-circle"></i>Đã hủy
+                                        </span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($order->payment_status == 'paid')
+                                        <span class="payment-status-badge bg-success text-white">
+                                            <i class="bi bi-check-circle"></i>Đã thanh toán
+                                        </span>
+                                    @elseif($order->payment_status == 'failed')
+                                        <span class="payment-status-badge bg-danger text-white">
+                                            <i class="bi bi-x-circle"></i>Thanh toán thất bại
+                                        </span>
+                                    @else
+                                        <span class="payment-status-badge bg-warning text-dark">
+                                            <i class="bi bi-clock"></i>Chưa thanh toán
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ route('orders.show', $order->id) }}" class="btn btn-primary btn-detail">
+                                        <i class="bi bi-eye me-1"></i>Chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @if($orders->hasPages())
+        <div class="mt-4">
+            {{ $orders->links() }}
+        </div>
+        @endif
+        @else
+        <div class="orders-card card">
+            <div class="card-body orders-empty">
+                <i class="bi bi-inbox"></i>
+                <h3>Chưa có đơn hàng nào</h3>
+                <p>Bạn chưa đặt đơn hàng nào. Hãy bắt đầu mua sắm!</p>
+                <a href="{{ route('products.index') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-arrow-right me-2"></i>Mua sắm ngay
+                </a>
+            </div>
+        </div>
+        @endif
     </div>
 </div>
-@endif
 @endsection

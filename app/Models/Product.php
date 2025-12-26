@@ -72,36 +72,76 @@ class Product extends Model
 
     public function isInStock()
     {
-        // Kiểm tra stock của product hoặc variants
-        if ($this->variants()->count() > 0) {
-            return $this->variants()->sum('stock_quantity') > 0;
+        try {
+            // Kiểm tra stock của product hoặc variants
+            if ($this->relationLoaded('variants') && $this->variants && $this->variants->count() > 0) {
+                return $this->variants->sum('stock_quantity') > 0;
+            }
+            // Fallback: check if variants exist via query
+            try {
+                if ($this->variants()->count() > 0) {
+                    return $this->variants()->sum('stock_quantity') > 0;
+                }
+            } catch (\Exception $e) {
+                // If variants table doesn't exist, just check product stock
+            }
+        } catch (\Exception $e) {
+            // If there's any error, just check product stock
         }
-        return $this->stock_quantity > 0;
+        return ($this->stock_quantity ?? 0) > 0;
     }
 
     public function hasVariants()
     {
-        return $this->variants()->count() > 0;
+        try {
+            if ($this->relationLoaded('variants') && $this->variants) {
+                return $this->variants->count() > 0;
+            }
+            // Fallback: check via query
+            try {
+                return $this->variants()->count() > 0;
+            } catch (\Exception $e) {
+                return false;
+            }
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     public function getMinPriceAttribute()
     {
-        if ($this->hasVariants()) {
-            $minVariantPrice = $this->variants()->min('sale_price') ?? $this->variants()->min('price');
-            if ($minVariantPrice) {
-                return min($this->final_price, $minVariantPrice);
+        try {
+            if ($this->hasVariants()) {
+                try {
+                    $minVariantPrice = $this->variants()->min('sale_price') ?? $this->variants()->min('price');
+                    if ($minVariantPrice) {
+                        return min($this->final_price, $minVariantPrice);
+                    }
+                } catch (\Exception $e) {
+                    // If variants query fails, just return product price
+                }
             }
+        } catch (\Exception $e) {
+            // If hasVariants fails, just return product price
         }
         return $this->final_price;
     }
 
     public function getMaxPriceAttribute()
     {
-        if ($this->hasVariants()) {
-            $maxVariantPrice = $this->variants()->max('sale_price') ?? $this->variants()->max('price');
-            if ($maxVariantPrice) {
-                return max($this->final_price, $maxVariantPrice);
+        try {
+            if ($this->hasVariants()) {
+                try {
+                    $maxVariantPrice = $this->variants()->max('sale_price') ?? $this->variants()->max('price');
+                    if ($maxVariantPrice) {
+                        return max($this->final_price, $maxVariantPrice);
+                    }
+                } catch (\Exception $e) {
+                    // If variants query fails, just return product price
+                }
             }
+        } catch (\Exception $e) {
+            // If hasVariants fails, just return product price
         }
         return $this->final_price;
     }

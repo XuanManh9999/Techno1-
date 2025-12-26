@@ -12,15 +12,36 @@ class CartController extends Controller
 {
     public function index()
     {
-        $cartItems = Cart::with(['product', 'variant'])
-            ->where('user_id', Auth::id())
-            ->get();
+        try {
+            $cartItems = Cart::with(['product', 'variant'])
+                ->where('user_id', Auth::id())
+                ->get();
 
-        $total = $cartItems->sum(function ($item) {
-            return $item->subtotal;
-        });
+            // Filter out items with missing products
+            $cartItems = $cartItems->filter(function ($item) {
+                return $item->product !== null;
+            });
 
-        return view('cart.index', compact('cartItems', 'total'));
+            $total = $cartItems->sum(function ($item) {
+                try {
+                    return $item->subtotal ?? 0;
+                } catch (\Exception $e) {
+                    return 0;
+                }
+            });
+
+            return view('cart.index', compact('cartItems', 'total'));
+        } catch (\Exception $e) {
+            \Log::error('Cart index error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return view('cart.index', [
+                'cartItems' => collect([]),
+                'total' => 0
+            ])->with('error', 'Có lỗi xảy ra khi tải giỏ hàng. Vui lòng thử lại.');
+        }
     }
 
     public function store(Request $request)
@@ -35,10 +56,13 @@ class CartController extends Controller
         $variant = null;
         $stockQuantity = $product->stock_quantity;
 
+        // Chuyển đổi variant_id rỗng thành null
+        $variantId = !empty($request->variant_id) ? $request->variant_id : null;
+
         // Nếu có variant, kiểm tra variant
-        if ($request->variant_id) {
+        if ($variantId) {
             $variant = ProductVariant::where('product_id', $product->id)
-                ->where('id', $request->variant_id)
+                ->where('id', $variantId)
                 ->where('status', true)
                 ->firstOrFail();
             
@@ -60,7 +84,7 @@ class CartController extends Controller
         // Tìm cart item với cùng product và variant
         $cartItem = Cart::where('user_id', Auth::id())
             ->where('product_id', $request->product_id)
-            ->where('variant_id', $request->variant_id)
+            ->where('variant_id', $variantId)
             ->first();
 
         if ($cartItem) {
@@ -73,7 +97,7 @@ class CartController extends Controller
             Cart::create([
                 'user_id' => Auth::id(),
                 'product_id' => $request->product_id,
-                'variant_id' => $request->variant_id,
+                'variant_id' => $variantId,
                 'quantity' => $request->quantity,
             ]);
         }

@@ -37,32 +37,54 @@ class Cart extends Model
 
     public function getSubtotalAttribute()
     {
-        $price = $this->variant ? $this->variant->final_price : $this->product->final_price;
-        return $this->quantity * $price;
+        if (!$this->product) {
+            return 0;
+        }
+        
+        try {
+            $price = $this->variant && $this->variant->final_price 
+                ? $this->variant->final_price 
+                : ($this->product->final_price ?? 0);
+            return $this->quantity * $price;
+        } catch (\Exception $e) {
+            return 0;
+        }
     }
 
     public function getProductNameAttribute()
     {
-        if ($this->variant) {
+        if (!$this->product) {
+            return 'Sản phẩm không tồn tại';
+        }
+        
+        if ($this->variant && $this->variant->display_name) {
             return $this->variant->display_name;
         }
-        return $this->product->name;
+        return $this->product->name ?? 'Sản phẩm không tồn tại';
     }
 
     public function getProductImageAttribute()
     {
+        if (!$this->product) {
+            return null;
+        }
+        
         if ($this->variant && $this->variant->image) {
             return $this->variant->image;
         }
-        return $this->product->image;
+        return $this->product->image ?? null;
     }
 
     public function getProductPriceAttribute()
     {
-        if ($this->variant) {
+        if (!$this->product) {
+            return 0;
+        }
+        
+        if ($this->variant && $this->variant->final_price) {
             return $this->variant->final_price;
         }
-        return $this->product->final_price;
+        return $this->product->final_price ?? 0;
     }
 }
 

@@ -45,18 +45,33 @@ class ProductController extends Controller
 
     public function show($slug)
     {
-        $product = Product::with(['category', 'brand', 'variants'])
-            ->where('slug', $slug)
-            ->where('status', true)
-            ->firstOrFail();
+        try {
+            $product = Product::with(['category', 'brand'])
+                ->where('slug', $slug)
+                ->where('status', true)
+                ->firstOrFail();
 
-        $relatedProducts = Product::where('category_id', $product->category_id)
-            ->where('id', '!=', $product->id)
-            ->where('status', true)
-            ->limit(4)
-            ->get();
+            // Load variants separately to avoid errors if table doesn't exist
+            try {
+                $product->load('variants');
+            } catch (\Exception $e) {
+                // If variants table doesn't exist, just continue without variants
+                \Log::warning('Product variants not available: ' . $e->getMessage());
+            }
 
-        return view('products.show', compact('product', 'relatedProducts'));
+            $relatedProducts = Product::with('category')
+                ->where('category_id', $product->category_id)
+                ->where('id', '!=', $product->id)
+                ->where('status', true)
+                ->limit(4)
+                ->get();
+
+            return view('products.show', compact('product', 'relatedProducts'));
+        } catch (\Exception $e) {
+            \Log::error('ProductController show error: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            abort(500, 'Có lỗi xảy ra khi tải sản phẩm. Vui lòng thử lại sau.');
+        }
     }
 }
 

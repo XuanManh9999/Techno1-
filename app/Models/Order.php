@@ -19,6 +19,10 @@ class Order extends Model
         'shipping_name',
         'shipping_phone',
         'shipping_address',
+        'province_id',
+        'district_id',
+        'ward_id',
+        'address_detail',
         'notes',
         'vnpay_transaction_id',
     ];
