@@ -37,8 +37,8 @@
                     <option value="failed" {{ request('payment_status') == 'failed' ? 'selected' : '' }}>Thất bại</option>
                 </select>
             </div>
-            <div class="col-md-2 d-flex align-items-end gap-2">
-                <button type="submit" class="btn btn-primary flex-fill">
+            <div class="col-md-4 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary">
                     <i class="bi bi-search"></i> Tìm kiếm
                 </button>
                 <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">
@@ -119,8 +119,8 @@
         </div>
 
         @if($orders->hasPages())
-        <div class="mt-4">
-            {{ $orders->links() }}
+        <div class="admin-pagination">
+            {{ $orders->links('vendor.pagination.custom') }}
         </div>
         @endif
     </div>

@@ -13,6 +13,9 @@ class Order extends Model
         'user_id',
         'order_number',
         'total_amount',
+        'subtotal_amount',
+        'discount_amount',
+        'coupon_id',
         'status',
         'payment_status',
         'payment_method',
@@ -29,6 +32,8 @@ class Order extends Model
 
     protected $casts = [
         'total_amount' => 'decimal:2',
+        'subtotal_amount' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
     ];
 
     const STATUS_PENDING = 'pending';
@@ -56,9 +61,45 @@ class Order extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
+    }
+
     public static function generateOrderNumber()
     {
-        return 'ORD' . date('Ymd') . str_pad(static::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
+        $date = date('Ymd');
+        $prefix = 'ORD' . $date;
+        
+        // Lấy số thứ tự lớn nhất của ngày hôm nay
+        $maxOrder = static::where('order_number', 'like', $prefix . '%')
+            ->orderBy('order_number', 'desc')
+            ->first();
+        
+        if ($maxOrder) {
+            // Lấy số cuối cùng từ order_number hiện tại
+            $lastNumber = (int) substr($maxOrder->order_number, -4);
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+        
+        $orderNumber = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        
+        // Kiểm tra và retry nếu trùng (để tránh race condition)
+        $attempts = 0;
+        while (static::where('order_number', $orderNumber)->exists() && $attempts < 10) {
+            $nextNumber++;
+            $orderNumber = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+            $attempts++;
+        }
+        
+        // Nếu vẫn trùng sau 10 lần thử, thêm timestamp để đảm bảo unique
+        if (static::where('order_number', $orderNumber)->exists()) {
+            $orderNumber = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT) . substr(time(), -3);
+        }
+        
+        return $orderNumber;
     }
 }
 

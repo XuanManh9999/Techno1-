@@ -15,6 +15,10 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
 
+// Blog routes
+Route::get('/blog', [App\Http\Controllers\BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}', [App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
+
 // Auth routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -33,6 +37,11 @@ Route::prefix('api/address')->group(function () {
     Route::get('/provinces', [App\Http\Controllers\Api\AddressController::class, 'getProvinces']);
     Route::get('/districts/{provinceId}', [App\Http\Controllers\Api\AddressController::class, 'getDistricts']);
     Route::get('/wards/{districtId}', [App\Http\Controllers\Api\AddressController::class, 'getWards']);
+});
+
+// Coupon API Routes
+Route::prefix('api/coupon')->middleware('auth')->group(function () {
+    Route::post('/validate', [App\Http\Controllers\Api\CouponController::class, 'validateCoupon']);
 });
 
 // Authenticated customer routes
@@ -71,6 +80,9 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->name('admin.')->group(fun
     Route::resource('products', App\Http\Controllers\Admin\ProductController::class);
     Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class);
     Route::resource('brands', App\Http\Controllers\Admin\BrandController::class);
+    Route::resource('coupons', App\Http\Controllers\Admin\CouponController::class);
+    Route::resource('posts', App\Http\Controllers\Admin\PostController::class);
+    Route::post('/posts/upload-image', [App\Http\Controllers\Admin\PostController::class, 'uploadImage'])->name('posts.upload-image');
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
     
     Route::get('/orders', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('orders.index');

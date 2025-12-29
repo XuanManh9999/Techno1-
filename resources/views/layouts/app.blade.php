@@ -34,6 +34,11 @@
                             <i class="bi bi-grid me-1"></i> Sản phẩm
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('blog.*') ? 'active' : '' }}" href="{{ route('blog.index') }}">
+                            <i class="bi bi-journal-text me-1"></i> Blog
+                        </a>
+                    </li>
                 </ul>
                 <ul class="navbar-nav">
                     @auth

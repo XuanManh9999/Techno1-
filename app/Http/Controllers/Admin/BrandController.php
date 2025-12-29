@@ -30,7 +30,7 @@ class BrandController extends Controller
             $query->where('status', $request->status);
         }
 
-        $brands = $query->orderBy('created_at', 'desc')->paginate(15);
+        $brands = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
         return view('admin.brands.index', compact('brands'));
     }
@@ -45,14 +45,14 @@ class BrandController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:brands,name',
             'description' => 'nullable|string',
-            'status' => 'boolean',
+            'status' => 'nullable|in:0,1',
         ]);
 
         Brand::create([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
             'description' => $request->description,
-            'status' => $request->has('status'),
+            'status' => (bool) $request->input('status', 0),
         ]);
 
         return redirect()->route('admin.brands.index')
@@ -72,14 +72,14 @@ class BrandController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:brands,name,' . $id,
             'description' => 'nullable|string',
-            'status' => 'boolean',
+            'status' => 'nullable|in:0,1',
         ]);
 
         $brand->update([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
             'description' => $request->description,
-            'status' => $request->has('status'),
+            'status' => (bool) $request->input('status', 0),
         ]);
 
         return redirect()->route('admin.brands.index')

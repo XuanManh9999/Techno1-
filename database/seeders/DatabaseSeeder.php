@@ -34,6 +34,12 @@ class DatabaseSeeder extends Seeder
         $this->command->info('7. Seeding Payments...');
         $this->call(PaymentSeeder::class);
         
+        $this->command->info('8. Seeding Coupons...');
+        $this->call(CouponSeeder::class);
+        
+        $this->command->info('9. Seeding Posts...');
+        $this->call(PostSeeder::class);
+        
         $this->command->info('✅ Hoàn thành seeding dữ liệu!');
         $this->command->info('');
         $this->command->info('Thông tin đăng nhập:');

@@ -57,17 +57,43 @@
                                         </h6>
                                         @if($item->variant)
                                         <div class="cart-item-variant">
-                                            <i class="bi bi-tag me-1"></i>{{ $item->variant->attributes_string }}
+                                            <i class="bi bi-tag me-2"></i>
+                                            <span class="variant-badge">
+                                                @if($item->variant->attributes)
+                                                    @foreach($item->variant->attributes as $key => $value)
+                                                        <span class="badge bg-secondary">{{ $key }}: {{ $value }}</span>
+                                                    @endforeach
+                                                @else
+                                                    {{ $item->variant->attributes_string }}
+                                                @endif
+                                            </span>
                                         </div>
                                         @endif
                                         <div class="cart-item-sku">
-                                            <i class="bi bi-upc-scan me-1"></i>SKU: {{ $item->variant ? $item->variant->sku : $item->product->sku }}
+                                            <i class="bi bi-upc-scan me-1"></i>
+                                            <code class="sku-code">{{ $item->variant ? $item->variant->sku : $item->product->sku }}</code>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="cart-item-price">
                                     <div class="price-label">Đơn giá</div>
-                                    <div class="price-value">{{ number_format($item->product->final_price) }}₫</div>
+                                    <div class="price-value">
+                                        @if($item->variant && $item->variant->final_price)
+                                            @if($item->variant->sale_price)
+                                                <span class="text-decoration-line-through text-muted small me-2">{{ number_format($item->variant->price) }}₫</span>
+                                                <span class="text-danger fw-bold">{{ number_format($item->variant->sale_price) }}₫</span>
+                                            @else
+                                                {{ number_format($item->variant->final_price) }}₫
+                                            @endif
+                                        @else
+                                            @if($item->product->sale_price)
+                                                <span class="text-decoration-line-through text-muted small me-2">{{ number_format($item->product->price) }}₫</span>
+                                                <span class="text-danger fw-bold">{{ number_format($item->product->sale_price) }}₫</span>
+                                            @else
+                                                {{ number_format($item->product->final_price) }}₫
+                                            @endif
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="cart-item-quantity">
                                     <div class="quantity-label">Số lượng</div>

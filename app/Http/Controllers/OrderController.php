@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Cart;
 use App\Models\Payment;
+use App\Models\Coupon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -43,6 +44,8 @@ class OrderController extends Controller
             'address_detail' => 'nullable|string|max:255',
             'payment_method' => 'required|in:VNPAY,COD',
             'notes' => 'nullable|string',
+            'coupon_id' => 'nullable|exists:coupons,id',
+            'discount_amount' => 'nullable|numeric|min:0',
         ]);
 
         $cartItems = Cart::with('product')
@@ -55,9 +58,42 @@ class OrderController extends Controller
 
         DB::beginTransaction();
         try {
-            $totalAmount = $cartItems->sum(function ($item) {
+            $subtotalAmount = $cartItems->sum(function ($item) {
                 return $item->subtotal;
             });
+
+            if ($subtotalAmount <= 0) {
+                return back()->with('error', 'Tổng tiền đơn hàng không hợp lệ');
+            }
+
+            // Validate and apply coupon if provided
+            $discountAmount = 0;
+            $couponId = null;
+            
+            if ($request->coupon_id && $request->discount_amount) {
+                $coupon = Coupon::find($request->coupon_id);
+                
+                if ($coupon && $coupon->isActive()) {
+                    // Re-validate coupon
+                    if ($coupon->canBeUsedByUser(Auth::id())) {
+                        $calculatedDiscount = $coupon->calculateDiscount($subtotalAmount);
+                        
+                        // Verify the discount amount matches
+                        if (abs($calculatedDiscount - $request->discount_amount) < 0.01) {
+                            $discountAmount = $calculatedDiscount;
+                            $couponId = $coupon->id;
+                        } else {
+                            return back()->with('error', 'Mã giảm giá không hợp lệ. Vui lòng thử lại.');
+                        }
+                    } else {
+                        return back()->with('error', 'Bạn đã sử dụng hết số lần cho phép của mã giảm giá này');
+                    }
+                } else {
+                    return back()->with('error', 'Mã giảm giá không còn hiệu lực');
+                }
+            }
+
+            $totalAmount = max(0, $subtotalAmount - $discountAmount);
 
             if ($totalAmount <= 0) {
                 return back()->with('error', 'Tổng tiền đơn hàng không hợp lệ');
@@ -69,7 +105,10 @@ class OrderController extends Controller
             $order = Order::create([
                 'user_id' => Auth::id(),
                 'order_number' => Order::generateOrderNumber(),
+                'subtotal_amount' => $subtotalAmount,
+                'discount_amount' => $discountAmount,
                 'total_amount' => $totalAmount,
+                'coupon_id' => $couponId,
                 'status' => Order::STATUS_PENDING,
                 'payment_status' => $paymentStatus,
                 'payment_method' => $request->payment_method,
@@ -82,6 +121,11 @@ class OrderController extends Controller
                 'address_detail' => $request->address_detail,
                 'notes' => $request->notes,
             ]);
+
+            // Increment coupon usage if applied
+            if ($couponId && $coupon) {
+                $coupon->incrementUsage();
+            }
 
             // Tạo order items và cập nhật stock
             foreach ($cartItems as $cartItem) {

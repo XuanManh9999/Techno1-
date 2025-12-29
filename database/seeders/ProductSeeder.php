@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Category;
 use App\Models\Brand;
 use Illuminate\Database\Seeder;
@@ -56,12 +57,16 @@ class ProductSeeder extends Seeder
             ['Ốp lưng iPhone 15', 'Phụ kiện', 'Apple', 990000, 790000],
         ];
 
+        $colors = ['Đỏ', 'Xanh', 'Đen', 'Trắng', 'Vàng', 'Tím', 'Hồng', 'Xám', 'Bạc', 'Xanh lá'];
+        $sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+        $storageSizes = ['64GB', '128GB', '256GB', '512GB', '1TB'];
+        
         foreach ($productNames as $productData) {
             $category = $categories->where('name', $productData[1])->first();
             $brand = $brands->where('name', $productData[2])->first();
 
             if ($category && $brand) {
-                Product::create([
+                $product = Product::create([
                     'name' => $productData[0],
                     'slug' => Str::slug($productData[0]),
                     'description' => $faker->paragraph(3),
@@ -70,11 +75,109 @@ class ProductSeeder extends Seeder
                     'sale_price' => $productData[4],
                     'sku' => 'SKU-' . strtoupper(Str::random(8)),
                     'stock_quantity' => $faker->numberBetween(0, 200),
+                    'image' => 'https://picsum.photos/800/800?random=' . rand(1, 1000),
                     'category_id' => $category->id,
                     'brand_id' => $brand->id,
                     'status' => true,
                     'featured' => $faker->boolean(30), // 30% featured
                 ]);
+
+                // Tạo variants ĐẦY ĐỦ cho TẤT CẢ sản phẩm
+                // Xác định số lượng variants dựa trên loại sản phẩm
+                if (in_array($category->name, ['Điện thoại', 'Tablet'])) {
+                    // Điện thoại và Tablet: Tạo variants với nhiều màu và dung lượng
+                    $variantColors = $faker->randomElements($colors, rand(3, 5)); // 3-5 màu
+                    $variantStorages = $faker->randomElements($storageSizes, rand(2, 4)); // 2-4 dung lượng
+                    $isFirstDefault = true;
+                    $variantIndex = 0;
+                    
+                    foreach ($variantColors as $color) {
+                        foreach ($variantStorages as $storage) {
+                            ProductVariant::create([
+                                'product_id' => $product->id,
+                                'sku' => $product->sku . '-' . ($variantIndex + 1),
+                                'name' => $product->name . ' - ' . $color . ' - ' . $storage,
+                                'attributes' => [
+                                    'Màu sắc' => $color,
+                                    'Dung lượng' => $storage,
+                                ],
+                                'price' => $faker->boolean(20) ? $productData[3] + $faker->numberBetween(-3000000, 3000000) : null,
+                                'sale_price' => $productData[4] ? ($productData[4] + $faker->numberBetween(-1500000, 1500000)) : null,
+                                'stock_quantity' => $faker->numberBetween(10, 200),
+                                'image' => 'https://picsum.photos/800/800?random=' . rand(1, 1000),
+                                'is_default' => $isFirstDefault,
+                                'status' => true,
+                                'sort_order' => $variantIndex,
+                            ]);
+                            
+                            $isFirstDefault = false;
+                            $variantIndex++;
+                        }
+                    }
+                } elseif ($category->name === 'Laptop') {
+                    // Laptop: Tạo variants với màu và cấu hình RAM/SSD
+                    $variantColors = $faker->randomElements(['Bạc', 'Xám', 'Đen', 'Xanh'], rand(2, 3));
+                    $ramOptions = ['8GB', '16GB', '32GB'];
+                    $ssdOptions = ['256GB', '512GB', '1TB'];
+                    $isFirstDefault = true;
+                    $variantIndex = 0;
+                    
+                    foreach ($variantColors as $color) {
+                        $ram = $faker->randomElement($ramOptions);
+                        $ssd = $faker->randomElement($ssdOptions);
+                        
+                        ProductVariant::create([
+                            'product_id' => $product->id,
+                            'sku' => $product->sku . '-' . ($variantIndex + 1),
+                            'name' => $product->name . ' - ' . $color . ' - ' . $ram . ' RAM - ' . $ssd . ' SSD',
+                            'attributes' => [
+                                'Màu sắc' => $color,
+                                'RAM' => $ram,
+                                'Ổ cứng' => $ssd,
+                            ],
+                            'price' => $productData[3] + $faker->numberBetween(-5000000, 5000000),
+                            'sale_price' => $productData[4] ? ($productData[4] + $faker->numberBetween(-3000000, 3000000)) : null,
+                            'stock_quantity' => $faker->numberBetween(5, 100),
+                            'image' => 'https://picsum.photos/800/800?random=' . rand(1, 1000),
+                            'is_default' => $isFirstDefault,
+                            'status' => true,
+                            'sort_order' => $variantIndex,
+                        ]);
+                        
+                        $isFirstDefault = false;
+                        $variantIndex++;
+                    }
+                } else {
+                    // Các sản phẩm khác: Tạo variants với màu và kích thước
+                    $variantColors = $faker->randomElements($colors, rand(3, 6)); // 3-6 màu
+                    $variantSizes = $faker->randomElements($sizes, rand(2, 4)); // 2-4 size
+                    $isFirstDefault = true;
+                    $variantIndex = 0;
+                    
+                    foreach ($variantColors as $color) {
+                        foreach ($variantSizes as $size) {
+                            ProductVariant::create([
+                                'product_id' => $product->id,
+                                'sku' => $product->sku . '-' . ($variantIndex + 1),
+                                'name' => $product->name . ' - ' . $color . ' - ' . $size,
+                                'attributes' => [
+                                    'Màu sắc' => $color,
+                                    'Kích thước' => $size,
+                                ],
+                                'price' => $faker->boolean(20) ? $productData[3] + $faker->numberBetween(-1000000, 1000000) : null,
+                                'sale_price' => $productData[4] ? ($productData[4] + $faker->numberBetween(-500000, 500000)) : null,
+                                'stock_quantity' => $faker->numberBetween(10, 150),
+                                'image' => 'https://picsum.photos/800/800?random=' . rand(1, 1000),
+                                'is_default' => $isFirstDefault,
+                                'status' => true,
+                                'sort_order' => $variantIndex,
+                            ]);
+                            
+                            $isFirstDefault = false;
+                            $variantIndex++;
+                        }
+                    }
+                }
             }
         }
 
@@ -86,7 +189,7 @@ class ProductSeeder extends Seeder
             $price = $faker->numberBetween(500000, 50000000);
             $hasSale = $faker->boolean(40); // 40% có sale
 
-            Product::create([
+            $product = Product::create([
                 'name' => ucwords($name),
                 'slug' => Str::slug($name) . '-' . $i,
                 'description' => $faker->paragraph(5),
@@ -95,11 +198,108 @@ class ProductSeeder extends Seeder
                 'sale_price' => $hasSale ? $price * 0.8 : null, // Giảm 20% nếu có sale
                 'sku' => 'SKU-' . strtoupper(Str::random(8)),
                 'stock_quantity' => $faker->numberBetween(0, 300),
+                'image' => 'https://picsum.photos/800/800?random=' . rand(1, 1000),
                 'category_id' => $category->id,
                 'brand_id' => $brand->id,
                 'status' => $faker->boolean(90), // 90% active
                 'featured' => $faker->boolean(20), // 20% featured
             ]);
+
+            // Tạo variants ĐẦY ĐỦ cho TẤT CẢ sản phẩm ngẫu nhiên
+            if (in_array($category->name, ['Điện thoại', 'Tablet'])) {
+                // Điện thoại và Tablet: Tạo variants với nhiều màu và dung lượng
+                $variantColors = $faker->randomElements($colors, rand(2, 4));
+                $variantStorages = $faker->randomElements($storageSizes, rand(2, 3));
+                $isFirstDefault = true;
+                $variantIndex = 0;
+                
+                foreach ($variantColors as $color) {
+                    foreach ($variantStorages as $storage) {
+                        ProductVariant::create([
+                            'product_id' => $product->id,
+                            'sku' => $product->sku . '-' . ($variantIndex + 1),
+                            'name' => $product->name . ' - ' . $color . ' - ' . $storage,
+                            'attributes' => [
+                                'Màu sắc' => $color,
+                                'Dung lượng' => $storage,
+                            ],
+                            'price' => $faker->boolean(20) ? $price + $faker->numberBetween(-2000000, 2000000) : null,
+                            'sale_price' => $hasSale ? ($price * 0.8 + $faker->numberBetween(-1000000, 1000000)) : null,
+                            'stock_quantity' => $faker->numberBetween(5, 150),
+                            'image' => 'https://picsum.photos/800/800?random=' . rand(1, 1000),
+                            'is_default' => $isFirstDefault,
+                            'status' => true,
+                            'sort_order' => $variantIndex,
+                        ]);
+                        
+                        $isFirstDefault = false;
+                        $variantIndex++;
+                    }
+                }
+            } elseif ($category->name === 'Laptop') {
+                // Laptop: Tạo variants với màu và cấu hình
+                $variantColors = $faker->randomElements(['Bạc', 'Xám', 'Đen'], rand(2, 3));
+                $ramOptions = ['8GB', '16GB'];
+                $ssdOptions = ['256GB', '512GB'];
+                $isFirstDefault = true;
+                $variantIndex = 0;
+                
+                foreach ($variantColors as $color) {
+                    $ram = $faker->randomElement($ramOptions);
+                    $ssd = $faker->randomElement($ssdOptions);
+                    
+                    ProductVariant::create([
+                        'product_id' => $product->id,
+                        'sku' => $product->sku . '-' . ($variantIndex + 1),
+                        'name' => $product->name . ' - ' . $color . ' - ' . $ram . ' RAM - ' . $ssd . ' SSD',
+                        'attributes' => [
+                            'Màu sắc' => $color,
+                            'RAM' => $ram,
+                            'Ổ cứng' => $ssd,
+                        ],
+                        'price' => $price + $faker->numberBetween(-3000000, 3000000),
+                        'sale_price' => $hasSale ? ($price * 0.8 + $faker->numberBetween(-2000000, 2000000)) : null,
+                        'stock_quantity' => $faker->numberBetween(3, 80),
+                        'image' => 'https://picsum.photos/800/800?random=' . rand(1, 1000),
+                        'is_default' => $isFirstDefault,
+                        'status' => true,
+                        'sort_order' => $variantIndex,
+                    ]);
+                    
+                    $isFirstDefault = false;
+                    $variantIndex++;
+                }
+            } else {
+                // Các sản phẩm khác: Tạo variants với màu và kích thước
+                $variantColors = $faker->randomElements($colors, rand(2, 5));
+                $variantSizes = $faker->randomElements($sizes, rand(2, 4));
+                $isFirstDefault = true;
+                $variantIndex = 0;
+                
+                foreach ($variantColors as $color) {
+                    foreach ($variantSizes as $size) {
+                        ProductVariant::create([
+                            'product_id' => $product->id,
+                            'sku' => $product->sku . '-' . ($variantIndex + 1),
+                            'name' => $product->name . ' - ' . $color . ' - ' . $size,
+                            'attributes' => [
+                                'Màu sắc' => $color,
+                                'Kích thước' => $size,
+                            ],
+                            'price' => $faker->boolean(20) ? $price + $faker->numberBetween(-500000, 500000) : null,
+                            'sale_price' => $hasSale ? ($price * 0.8 + $faker->numberBetween(-300000, 300000)) : null,
+                            'stock_quantity' => $faker->numberBetween(5, 120),
+                            'image' => 'https://picsum.photos/800/800?random=' . rand(1, 1000),
+                            'is_default' => $isFirstDefault,
+                            'status' => true,
+                            'sort_order' => $variantIndex,
+                        ]);
+                        
+                        $isFirstDefault = false;
+                        $variantIndex++;
+                    }
+                }
+            }
         }
     }
 }

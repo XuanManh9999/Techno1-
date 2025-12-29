@@ -45,9 +45,6 @@
                             </h5>
                         </div>
                         <div class="checkout-form-body">
-                <form action="{{ route('orders.store') }}" method="POST" id="checkoutForm">
-                    @csrf
-
                             <form action="{{ route('orders.store') }}" method="POST" id="checkoutForm">
                                 @csrf
 
@@ -347,7 +344,16 @@
                                             </h6>
                                             @if($item->variant)
                                             <div class="order-item-variant">
-                                                <i class="bi bi-tag me-1"></i>{{ $item->variant->attributes_string }}
+                                                <i class="bi bi-tag me-2"></i>
+                                                <span class="variant-badges">
+                                                    @if($item->variant->attributes)
+                                                        @foreach($item->variant->attributes as $key => $value)
+                                                            <span class="badge bg-secondary me-1">{{ $key }}: {{ $value }}</span>
+                                                        @endforeach
+                                                    @else
+                                                        {{ $item->variant->attributes_string }}
+                                                    @endif
+                                                </span>
                                             </div>
                                             @endif
                                             <div class="order-item-meta">
@@ -357,7 +363,25 @@
                                                 </div>
                                                 <div class="order-item-unit-price">
                                                     <i class="bi bi-currency-dollar"></i>
-                                                    <span>Đơn giá: <strong>{{ number_format($item->product->final_price) }}₫</strong></span>
+                                                    <span>Đơn giá: 
+                                                        <strong>
+                                                            @if($item->variant && $item->variant->final_price)
+                                                                @if($item->variant->sale_price)
+                                                                    <span class="text-decoration-line-through text-muted small me-1">{{ number_format($item->variant->price) }}₫</span>
+                                                                    <span class="text-danger">{{ number_format($item->variant->sale_price) }}₫</span>
+                                                                @else
+                                                                    {{ number_format($item->variant->final_price) }}₫
+                                                                @endif
+                                                            @else
+                                                                @if($item->product->sale_price)
+                                                                    <span class="text-decoration-line-through text-muted small me-1">{{ number_format($item->product->price) }}₫</span>
+                                                                    <span class="text-danger">{{ number_format($item->product->sale_price) }}₫</span>
+                                                                @else
+                                                                    {{ number_format($item->product->final_price) }}₫
+                                                                @endif
+                                                            @endif
+                                                        </strong>
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -370,9 +394,42 @@
                                 @endforeach
                             </div>
                             <div class="order-summary-divider"></div>
+                            
+                            <!-- Discount Code Section -->
+                            <div class="discount-code-section">
+                                <div class="discount-code-header">
+                                    <label class="discount-code-label">
+                                        <i class="bi bi-ticket-perforated me-2"></i>Mã giảm giá
+                                    </label>
+                                </div>
+                                <div class="discount-code-body">
+                                    <div class="input-group discount-input-group">
+                                        <input type="text" 
+                                               class="form-control discount-code-input" 
+                                               id="discountCode" 
+                                               name="discount_code"
+                                               placeholder="Nhập mã giảm giá"
+                                               autocomplete="off">
+                                        <button type="button" 
+                                                class="btn btn-primary discount-apply-btn" 
+                                                id="applyDiscountBtn">
+                                            <i class="bi bi-check-lg me-1"></i>Áp dụng
+                                        </button>
+                                    </div>
+                                    <div id="discountMessage" class="discount-message mt-2"></div>
+                                    <input type="hidden" id="couponId" name="coupon_id" value="">
+                                    <input type="hidden" id="discountAmount" name="discount_amount" value="0">
+                                </div>
+                            </div>
+                            
+                            <div class="order-summary-divider"></div>
                             <div class="summary-row">
                                 <span class="summary-label">Tạm tính:</span>
-                                <span class="summary-value">{{ number_format($total) }}₫</span>
+                                <span class="summary-value" id="subtotalDisplay">{{ number_format($total) }}₫</span>
+                            </div>
+                            <div class="summary-row" id="discountRow" style="display: none;">
+                                <span class="summary-label">Giảm giá:</span>
+                                <span class="summary-value summary-value-discount" id="discountDisplay">-0₫</span>
                             </div>
                             <div class="summary-row">
                                 <span class="summary-label">Phí vận chuyển:</span>
@@ -383,7 +440,7 @@
                             <div class="order-summary-divider"></div>
                             <div class="summary-row summary-row-total">
                                 <span class="summary-label">Tổng cộng:</span>
-                                <span class="summary-value summary-value-total">{{ number_format($total) }}₫</span>
+                                <span class="summary-value summary-value-total" id="totalDisplay">{{ number_format($total) }}₫</span>
                             </div>
                         </div>
                     </div>
@@ -623,6 +680,132 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             alert('Vui lòng chọn đầy đủ Tỉnh/Thành phố, Quận/Huyện và Phường/Xã');
             return false;
+        }
+    });
+
+    // Discount Code Functionality
+    const discountCodeInput = document.getElementById('discountCode');
+    const applyDiscountBtn = document.getElementById('applyDiscountBtn');
+    const discountMessage = document.getElementById('discountMessage');
+    const couponIdInput = document.getElementById('couponId');
+    const discountAmountInput = document.getElementById('discountAmount');
+    const subtotalDisplay = document.getElementById('subtotalDisplay');
+    const discountDisplay = document.getElementById('discountDisplay');
+    const discountRow = document.getElementById('discountRow');
+    const totalDisplay = document.getElementById('totalDisplay');
+    
+    const originalTotal = {{ $total }};
+    let currentDiscount = 0;
+    let currentCouponId = null;
+
+    // Apply discount code
+    applyDiscountBtn.addEventListener('click', function() {
+        const code = discountCodeInput.value.trim().toUpperCase();
+        
+        if (!code) {
+            showDiscountMessage('Vui lòng nhập mã giảm giá', 'error');
+            return;
+        }
+
+        applyDiscountBtn.disabled = true;
+        applyDiscountBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang kiểm tra...';
+
+        fetch('/api/coupon/validate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ code: code })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                currentDiscount = parseFloat(data.discount.amount);
+                currentCouponId = data.coupon.id;
+                
+                couponIdInput.value = currentCouponId;
+                discountAmountInput.value = currentDiscount;
+                
+                updateTotals();
+                showDiscountMessage(
+                    `<i class="bi bi-check-circle me-1"></i>${data.message} - Giảm ${data.discount.formatted}`,
+                    'success'
+                );
+                
+                discountCodeInput.disabled = true;
+                applyDiscountBtn.innerHTML = '<i class="bi bi-x-lg me-1"></i>Xóa';
+                applyDiscountBtn.onclick = removeDiscount;
+            } else {
+                showDiscountMessage(`<i class="bi bi-exclamation-circle me-1"></i>${data.message}`, 'error');
+                applyDiscountBtn.disabled = false;
+                applyDiscountBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Áp dụng';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showDiscountMessage('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+            applyDiscountBtn.disabled = false;
+            applyDiscountBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Áp dụng';
+        });
+    });
+
+    // Remove discount
+    function removeDiscount() {
+        currentDiscount = 0;
+        currentCouponId = null;
+        couponIdInput.value = '';
+        discountAmountInput.value = '0';
+        discountCodeInput.value = '';
+        discountCodeInput.disabled = false;
+        
+        updateTotals();
+        showDiscountMessage('', '');
+        
+        applyDiscountBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Áp dụng';
+        applyDiscountBtn.onclick = null;
+        applyDiscountBtn.disabled = false;
+    }
+
+    // Update totals display
+    function updateTotals() {
+        const finalTotal = Math.max(0, originalTotal - currentDiscount);
+        
+        subtotalDisplay.textContent = new Intl.NumberFormat('vi-VN').format(originalTotal) + '₫';
+        
+        if (currentDiscount > 0) {
+            discountRow.style.display = 'flex';
+            discountDisplay.textContent = '-' + new Intl.NumberFormat('vi-VN').format(currentDiscount) + '₫';
+        } else {
+            discountRow.style.display = 'none';
+        }
+        
+        totalDisplay.textContent = new Intl.NumberFormat('vi-VN').format(finalTotal) + '₫';
+    }
+
+    // Show discount message
+    function showDiscountMessage(message, type) {
+        if (!message) {
+            discountMessage.innerHTML = '';
+            discountMessage.className = 'discount-message mt-2';
+            return;
+        }
+
+        discountMessage.innerHTML = message;
+        discountMessage.className = 'discount-message mt-2';
+        
+        if (type === 'success') {
+            discountMessage.classList.add('text-success');
+        } else if (type === 'error') {
+            discountMessage.classList.add('text-danger');
+        }
+    }
+
+    // Allow Enter key to apply discount
+    discountCodeInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !applyDiscountBtn.disabled) {
+            e.preventDefault();
+            applyDiscountBtn.click();
         }
     });
 });

@@ -36,7 +36,7 @@
                         <select name="category" class="form-select">
                             <option value="">Tất cả danh mục</option>
                             @foreach($categories as $category)
-                                <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                                <option value="{{ $category->id }}" {{ request('category') == $category->id || request('category') == (string)$category->id ? 'selected' : '' }}>
                                     {{ $category->name }}
                                 </option>
                             @endforeach
@@ -50,7 +50,7 @@
                         <select name="brand" class="form-select">
                             <option value="">Tất cả thương hiệu</option>
                             @foreach($brands as $brand)
-                                <option value="{{ $brand->id }}" {{ request('brand') == $brand->id ? 'selected' : '' }}>
+                                <option value="{{ $brand->id }}" {{ request('brand') == $brand->id || request('brand') == (string)$brand->id ? 'selected' : '' }}>
                                     {{ $brand->name }}
                                 </option>
                             @endforeach
@@ -171,8 +171,8 @@
                         @endforeach
                     </div>
 
-                    <div class="pagination-wrapper mt-5">
-                        {{ $products->links() }}
+                    <div class="mt-5">
+                        {{ $products->links('vendor.pagination.custom') }}
                     </div>
                     @else
                     <div class="empty-state-card">

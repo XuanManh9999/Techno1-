@@ -30,7 +30,7 @@ class CategoryController extends Controller
             $query->where('status', $request->status);
         }
 
-        $categories = $query->orderBy('created_at', 'desc')->paginate(15);
+        $categories = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
         return view('admin.categories.index', compact('categories'));
     }
@@ -45,14 +45,14 @@ class CategoryController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
             'description' => 'nullable|string',
-            'status' => 'boolean',
+            'status' => 'nullable|in:0,1',
         ]);
 
         Category::create([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
             'description' => $request->description,
-            'status' => $request->has('status'),
+            'status' => (bool) $request->input('status', 0),
         ]);
 
         return redirect()->route('admin.categories.index')
@@ -72,14 +72,14 @@ class CategoryController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:categories,name,' . $id,
             'description' => 'nullable|string',
-            'status' => 'boolean',
+            'status' => 'nullable|in:0,1',
         ]);
 
         $category->update([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
             'description' => $request->description,
-            'status' => $request->has('status'),
+            'status' => (bool) $request->input('status', 0),
         ]);
 
         return redirect()->route('admin.categories.index')

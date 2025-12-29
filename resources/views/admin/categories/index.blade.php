@@ -77,9 +77,13 @@
                         <td>
                             <div class="btn-group btn-group-sm">
                                 <button type="button" 
-                                        class="btn btn-warning" 
+                                        class="btn btn-warning edit-category-btn" 
                                         data-bs-toggle="modal" 
-                                        data-bs-target="#editCategoryModal{{ $category->id }}"
+                                        data-bs-target="#editCategoryModal"
+                                        data-id="{{ $category->id }}"
+                                        data-name="{{ $category->name }}"
+                                        data-description="{{ $category->description }}"
+                                        data-status="{{ $category->status }}"
                                         title="Sửa">
                                     <i class="bi bi-pencil"></i>
                                 </button>
@@ -96,42 +100,6 @@
                             </div>
                         </td>
                     </tr>
-
-                    <!-- Edit Modal -->
-                    <div class="modal fade" id="editCategoryModal{{ $category->id }}" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <form action="{{ route('admin.categories.update', $category->id) }}" method="POST">
-                                    @csrf
-                                    @method('PUT')
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Sửa danh mục</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="mb-3">
-                                            <label class="form-label">Tên danh mục *</label>
-                                            <input type="text" name="name" class="form-control" 
-                                                   value="{{ $category->name }}" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Mô tả</label>
-                                            <textarea name="description" class="form-control" rows="3">{{ $category->description }}</textarea>
-                                        </div>
-                                        <div class="form-check">
-                                            <input type="checkbox" name="status" class="form-check-input" 
-                                                   id="status{{ $category->id }}" {{ $category->status ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="status{{ $category->id }}">Hiển thị</label>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                                        <button type="submit" class="btn btn-primary">Cập nhật</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
                     @empty
                     <tr>
                         <td colspan="8" class="text-center py-4">
@@ -145,22 +113,22 @@
         </div>
 
         @if($categories->hasPages())
-        <div class="mt-4">
-            {{ $categories->links() }}
+        <div class="admin-pagination">
+            {{ $categories->links('vendor.pagination.custom') }}
         </div>
         @endif
     </div>
 </div>
 
 <!-- Create Modal -->
-<div class="modal fade" id="createCategoryModal" tabindex="-1">
-    <div class="modal-dialog">
+<div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <form action="{{ route('admin.categories.store') }}" method="POST">
+            <form action="{{ route('admin.categories.store') }}" method="POST" id="createCategoryForm">
                 @csrf
                 <div class="modal-header">
-                    <h5 class="modal-title">Thêm danh mục mới</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title" id="createCategoryModalLabel">Thêm danh mục mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -172,7 +140,8 @@
                         <textarea name="description" class="form-control" rows="3"></textarea>
                     </div>
                     <div class="form-check">
-                        <input type="checkbox" name="status" class="form-check-input" id="status" checked>
+                        <input type="hidden" name="status" value="0">
+                        <input type="checkbox" name="status" class="form-check-input" id="status" value="1" checked>
                         <label class="form-check-label" for="status">Hiển thị</label>
                     </div>
                 </div>
@@ -184,5 +153,112 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form action="" method="POST" id="editCategoryForm">
+                @csrf
+                @method('PUT')
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCategoryModalLabel">Sửa danh mục</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tên danh mục *</label>
+                        <input type="text" name="name" id="editCategoryName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <textarea name="description" id="editCategoryDescription" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-check">
+                        <input type="hidden" name="status" value="0">
+                        <input type="checkbox" name="status" class="form-check-input" id="editCategoryStatus" value="1">
+                        <label class="form-check-label" for="editCategoryStatus">Hiển thị</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle edit button click - populate modal with category data
+    document.querySelectorAll('.edit-category-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const categoryId = this.getAttribute('data-id');
+            const categoryName = this.getAttribute('data-name');
+            const categoryDescription = this.getAttribute('data-description') || '';
+            const categoryStatus = this.getAttribute('data-status') === '1';
+            
+            // Update form action
+            const editForm = document.getElementById('editCategoryForm');
+            editForm.action = '{{ route("admin.categories.update", ":id") }}'.replace(':id', categoryId);
+            
+            // Populate form fields
+            document.getElementById('editCategoryName').value = categoryName;
+            document.getElementById('editCategoryDescription').value = categoryDescription;
+            document.getElementById('editCategoryStatus').checked = categoryStatus;
+        });
+    });
+    
+    // Handle form submission
+    document.querySelectorAll('#editCategoryForm, #createCategoryForm').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn && !submitBtn.disabled) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang xử lý...';
+            }
+        });
+    });
+    
+    // Reset form when modal is closed
+    const editModal = document.getElementById('editCategoryModal');
+    if (editModal) {
+        editModal.addEventListener('hidden.bs.modal', function() {
+            const form = document.getElementById('editCategoryForm');
+            if (form) {
+                form.reset();
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Cập nhật';
+                }
+            }
+        });
+    }
+    
+    const createModal = document.getElementById('createCategoryModal');
+    if (createModal) {
+        createModal.addEventListener('hidden.bs.modal', function() {
+            const form = document.getElementById('createCategoryForm');
+            if (form) {
+                form.reset();
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Thêm';
+                }
+                // Reset checkbox to checked
+                const statusCheckbox = form.querySelector('input[name="status"]');
+                if (statusCheckbox && statusCheckbox.type === 'checkbox') {
+                    statusCheckbox.checked = true;
+                }
+            }
+        });
+    }
+});
+</script>
+@endpush
 @endsection
 
