@@ -365,20 +365,39 @@
                                                     <i class="bi bi-currency-dollar"></i>
                                                     <span>Đơn giá: 
                                                         <strong>
-                                                            @if($item->variant && $item->variant->final_price)
-                                                                @if($item->variant->sale_price)
-                                                                    <span class="text-decoration-line-through text-muted small me-1">{{ number_format($item->variant->price) }}₫</span>
-                                                                    <span class="text-danger">{{ number_format($item->variant->sale_price) }}₫</span>
-                                                                @else
-                                                                    {{ number_format($item->variant->final_price) }}₫
-                                                                @endif
+                                                            @php
+                                                                $unitPrice = $item->product_price ?? 0;
+                                                                $originalPrice = null;
+                                                                
+                                                                if ($item->variant) {
+                                                                    if ($item->variant->sale_price) {
+                                                                        $originalPrice = $item->variant->price ?: $item->product->price;
+                                                                        $unitPrice = $item->variant->sale_price;
+                                                                    } elseif ($item->variant->price) {
+                                                                        $unitPrice = $item->variant->price;
+                                                                    } else {
+                                                                        if ($item->product->sale_price) {
+                                                                            $originalPrice = $item->product->price;
+                                                                            $unitPrice = $item->product->sale_price;
+                                                                        } else {
+                                                                            $unitPrice = $item->product->price;
+                                                                        }
+                                                                    }
+                                                                } else {
+                                                                    if ($item->product->sale_price) {
+                                                                        $originalPrice = $item->product->price;
+                                                                        $unitPrice = $item->product->sale_price;
+                                                                    } else {
+                                                                        $unitPrice = $item->product->price;
+                                                                    }
+                                                                }
+                                                            @endphp
+                                                            
+                                                            @if($originalPrice)
+                                                                <span class="text-decoration-line-through text-muted small me-1">{{ number_format($originalPrice) }}₫</span>
+                                                                <span class="text-danger">{{ number_format($unitPrice) }}₫</span>
                                                             @else
-                                                                @if($item->product->sale_price)
-                                                                    <span class="text-decoration-line-through text-muted small me-1">{{ number_format($item->product->price) }}₫</span>
-                                                                    <span class="text-danger">{{ number_format($item->product->sale_price) }}₫</span>
-                                                                @else
-                                                                    {{ number_format($item->product->final_price) }}₫
-                                                                @endif
+                                                                {{ number_format($unitPrice) }}₫
                                                             @endif
                                                         </strong>
                                                     </span>

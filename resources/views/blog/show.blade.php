@@ -55,7 +55,7 @@
                     <!-- Featured Image -->
                     @if($post->featured_image)
                         <div class="mb-4">
-                            <img src="{{ Storage::url($post->featured_image) }}" 
+                            <img src="{{ $post->featured_image }}" 
                                  alt="{{ $post->title }}" 
                                  class="img-fluid rounded shadow">
                         </div>
@@ -77,7 +77,7 @@
                             <div class="card shadow-sm h-100">
                                 @if($relatedPost->featured_image)
                                     <a href="{{ route('blog.show', $relatedPost->slug) }}">
-                                        <img src="{{ Storage::url($relatedPost->featured_image) }}" 
+                                        <img src="{{ $relatedPost->featured_image }}" 
                                              class="card-img-top" 
                                              alt="{{ $relatedPost->title }}"
                                              style="height: 150px; object-fit: cover;">

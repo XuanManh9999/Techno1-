@@ -52,7 +52,7 @@ class PostController extends Controller
             'slug' => 'nullable|string|max:255|unique:posts,slug',
             'excerpt' => 'nullable|string|max:500',
             'content' => 'required|string',
-            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'featured_image' => 'nullable|url|max:500',
             'is_published' => 'nullable|boolean',
             'published_at' => 'nullable|date',
         ]);
@@ -66,12 +66,8 @@ class PostController extends Controller
                 'user_id' => auth()->id(),
                 'is_published' => $request->boolean('is_published'),
                 'published_at' => $request->filled('published_at') ? $request->published_at : ($request->boolean('is_published') ? now() : null),
+                'featured_image' => $request->filled('featured_image') ? $request->featured_image : null,
             ];
-
-            // Upload featured image
-            if ($request->hasFile('featured_image')) {
-                $data['featured_image'] = $request->file('featured_image')->store('posts', 'public');
-            }
 
             Post::create($data);
 
@@ -104,7 +100,7 @@ class PostController extends Controller
             'slug' => 'nullable|string|max:255|unique:posts,slug,' . $id,
             'excerpt' => 'nullable|string|max:500',
             'content' => 'required|string',
-            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'featured_image' => 'nullable|url|max:500',
             'is_published' => 'nullable|boolean',
             'published_at' => 'nullable|date',
         ]);
@@ -117,16 +113,8 @@ class PostController extends Controller
                 'content' => $request->content,
                 'is_published' => $request->boolean('is_published'),
                 'published_at' => $request->filled('published_at') ? $request->published_at : ($request->boolean('is_published') && !$post->published_at ? now() : $post->published_at),
+                'featured_image' => $request->filled('featured_image') ? $request->featured_image : $post->featured_image,
             ];
-
-            // Upload featured image
-            if ($request->hasFile('featured_image')) {
-                // Delete old image
-                if ($post->featured_image) {
-                    Storage::disk('public')->delete($post->featured_image);
-                }
-                $data['featured_image'] = $request->file('featured_image')->store('posts', 'public');
-            }
 
             $post->update($data);
 
@@ -143,11 +131,6 @@ class PostController extends Controller
         $post = Post::findOrFail($id);
 
         try {
-            // Delete featured image
-            if ($post->featured_image) {
-                Storage::disk('public')->delete($post->featured_image);
-            }
-
             $post->delete();
 
             return redirect()->route('admin.posts.index')

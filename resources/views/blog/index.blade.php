@@ -40,7 +40,7 @@
                 <article class="card h-100 shadow-sm blog-card">
                     @if($post->featured_image)
                         <a href="{{ route('blog.show', $post->slug) }}">
-                            <img src="{{ Storage::url($post->featured_image) }}" 
+                            <img src="{{ $post->featured_image }}" 
                                  class="card-img-top" 
                                  alt="{{ $post->title }}"
                                  style="height: 200px; object-fit: cover;">

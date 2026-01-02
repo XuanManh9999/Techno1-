@@ -5316,7 +5316,7 @@ img {
 .checkout-order-summary-card {
     background: white;
     border-radius: 16px;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     border: 1px solid var(--gray-lighter);
     position: sticky;
@@ -5324,6 +5324,7 @@ img {
     max-height: calc(100vh - 120px);
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
 }
 
 .checkout-order-summary-header {
@@ -5381,17 +5382,13 @@ img {
     background: white;
     display: flex;
     flex-direction: column;
-    flex: 1;
-    min-height: 0;
 }
 
 .order-items-list {
     margin-bottom: 1.5rem;
-    flex: 1;
-    min-height: 0;
     overflow-y: auto;
     padding-right: 0.5rem;
-    max-height: 500px;
+    max-height: 600px;
 }
 
 .order-items-list::-webkit-scrollbar {
@@ -5415,11 +5412,11 @@ img {
 .order-item-modern {
     display: flex;
     gap: 1.25rem;
-    padding: 1.5rem;
+    padding: 1.25rem;
     margin-bottom: 1.25rem;
     background: white;
     border: 1px solid #e2e8f0;
-    border-radius: 14px;
+    border-radius: 12px;
     transition: all 0.3s ease;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
@@ -5435,15 +5432,11 @@ img {
     transform: translateY(-2px);
 }
 
-.order-item-modern:last-child {
-    margin-bottom: 0;
-}
-
 .order-item-image-wrapper {
     width: 100px;
     height: 100px;
     flex-shrink: 0;
-    border-radius: 12px;
+    border-radius: 10px;
     overflow: hidden;
     background: #f1f5f9;
     border: 1px solid #e2e8f0;
@@ -5487,6 +5480,7 @@ img {
     flex-direction: column;
     gap: 0.75rem;
     min-width: 0;
+    overflow: hidden;
 }
 
 .order-item-info {
@@ -5498,11 +5492,16 @@ img {
 }
 
 .order-item-name {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     color: #1e293b;
     margin: 0;
     line-height: 1.5;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .order-item-name a {
@@ -5517,14 +5516,17 @@ img {
 }
 
 .order-item-variant {
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     color: #64748b;
-    margin-bottom: 0.75rem;
+    margin: 0;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 0.5rem;
-    padding: 0.5rem 0;
+}
+
+.order-item-variant i {
+    font-size: 0.8rem;
 }
 
 .order-item-variant .variant-badges {
@@ -5535,17 +5537,17 @@ img {
 
 .order-item-variant .variant-badges .badge {
     margin: 0;
-    font-size: 0.8rem;
-    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.6rem;
     font-weight: 500;
 }
 
 .order-item-meta {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-top: 0.5rem;
-    padding-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
     border-top: 1px solid #e2e8f0;
 }
 
@@ -5569,7 +5571,7 @@ img {
 .order-item-unit-price i {
     color: #3b82f6;
     margin-right: 0.5rem;
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     width: 16px;
     text-align: center;
 }
@@ -5578,17 +5580,17 @@ img {
 .order-item-unit-price strong {
     color: #1e293b;
     font-weight: 600;
-    margin-left: 0.5rem;
+    margin-left: 0.375rem;
 }
 
 .order-item-price-wrapper {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    justify-content: flex-start;
+    justify-content: center;
     padding-left: 1rem;
     border-left: 2px solid #e2e8f0;
-    min-width: 130px;
+    min-width: 120px;
     flex-shrink: 0;
 }
 
@@ -5622,7 +5624,7 @@ img {
 }
 
 .order-item-price {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: #dc2626;
     white-space: nowrap;

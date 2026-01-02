@@ -28,7 +28,7 @@
                 
                 @if($post->featured_image)
                     <div class="mb-3">
-                        <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}" 
+                        <img src="{{ $post->featured_image }}" alt="{{ $post->title }}" 
                              class="img-fluid rounded">
                     </div>
                 @endif

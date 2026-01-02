@@ -20,7 +20,7 @@
 
 <div class="card">
     <div class="card-body">
-        <form action="{{ route('admin.posts.update', $post->id) }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('admin.posts.update', $post->id) }}" method="POST">
             @csrf
             @method('PUT')
             
@@ -51,17 +51,25 @@
 
             <div class="mb-3">
                 <label class="form-label">Hình ảnh đại diện</label>
-                @if($post->featured_image)
-                    <div class="mb-2">
-                        <img src="{{ Storage::url($post->featured_image) }}" alt="{{ $post->title }}" 
-                             class="img-thumbnail" style="max-width: 200px;">
-                    </div>
-                @endif
-                <input type="file" name="featured_image" class="form-control @error('featured_image') is-invalid @enderror" 
-                       accept="image/*">
+                <input type="text" 
+                       name="featured_image" 
+                       id="featured_image"
+                       class="form-control @error('featured_image') is-invalid @enderror" 
+                       value="{{ old('featured_image', $post->featured_image) }}"
+                       placeholder="Nhập URL hình ảnh (ví dụ: https://example.com/image.jpg)">
                 @error('featured_image')
                     <div class="text-danger small">{{ $message }}</div>
                 @enderror
+                <small class="text-muted">Nhập URL hình ảnh đại diện cho bài viết</small>
+                
+                <!-- Preview hình ảnh -->
+                <div id="imagePreviewContainer" class="mt-2" style="{{ old('featured_image', $post->featured_image) ? '' : 'display: none;' }}">
+                    <img id="imagePreview" 
+                         src="{{ old('featured_image', $post->featured_image) }}" 
+                         alt="Preview" 
+                         class="img-thumbnail" 
+                         style="max-width: 300px; max-height: 200px;">
+                </div>
             </div>
 
             <div class="mb-3">
@@ -113,6 +121,38 @@
 
 @push('scripts')
 <script>
+// Preview hình ảnh khi nhập URL
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('featured_image');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const previewImage = document.getElementById('imagePreview');
+    
+    if (imageInput) {
+        imageInput.addEventListener('input', function() {
+            const url = this.value.trim();
+            if (url) {
+                previewImage.src = url;
+                previewContainer.style.display = 'block';
+                
+                // Xử lý lỗi nếu URL không hợp lệ
+                previewImage.onerror = function() {
+                    previewContainer.style.display = 'none';
+                };
+            } else {
+                previewContainer.style.display = 'none';
+            }
+        });
+        
+        imageInput.addEventListener('blur', function() {
+            const url = this.value.trim();
+            if (url) {
+                previewImage.src = url;
+                previewContainer.style.display = 'block';
+            }
+        });
+    }
+});
+
 tinymce.init({
     selector: '#content',
     height: 500,
